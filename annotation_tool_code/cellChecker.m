@@ -1,21 +1,26 @@
 function [valid] = cellChecker(p, movie, traces, filters, events, varargin)
 
+statuses.valid = ["Marked as valid", "green"];
+statuses.invalid = ["Marked as invalid", "red"];
+statuses.unmarked = ["Not Marked", "black"];
+statuses.contaminated = ["Marked as contaminated", "yellow"];
+
 % set params
+% number of filters
 nCells=size(filters,3);
 currentIdx = 1;
 
 % preallocate output
 valid = -1*ones(nCells,1);
-
 %% get necessary data
 
 [ areas,centroids,cvxHulls,cvxAreas,outlines ] = getFilterProps( filters );
 
 % get event montages
 eventMontages=cell(length(events),1);
-for cInd=1:length(events)
-    eventMontages{cInd} = getEventMontage(events{cInd}, traces(cInd,:), movie, centroids(cInd,:), filters(:,:,cInd));
-end
+% for cInd=1:length(events)
+%      eventMontages{cInd} = getEventMontage(events{cInd}, traces(cInd,:), movie, centroids(cInd,:), filters(:,:,cInd));
+% end
 
 %% exclude cells that are too small or have no events
 
@@ -30,8 +35,11 @@ finished=0;
 lastDir=1;
 i = 0;
 startFlag = 1;
+polygon = [];
 
 while ~finished   
+    
+    
     
     % set indices
     if i ~= currentIdx
@@ -45,14 +53,16 @@ while ~finished
         end
     end
 
+    
+    
     if ~skipCell(i)
 
 %% plot data
-    
+        filter = filters(:,:,i);
         %plot filter
         figure(h)
         subplot(2,4,1);
-        imagesc(filters(:,:,i));
+        imagesc(filter);
         xlim([1,size(filters,2)])
         ylim([1,size(filters,1)])
         axis off
@@ -98,13 +108,34 @@ while ~finished
         
         % plot event montage
         subplot(2,4,[3 4 7 8])
+        if isempty(eventMontages{i})
+            title('Loading snapshots...')
+            eventMontages{i} = getEventMontage(events{i}, traces(i,:), movie, centroids(i,:), filters(:,:,i));
+        end
         imagesc(eventMontages{i})
         title(['Snapshots of ' num2str(length(events{i})) ' events'])
         axis off
 
-        suptitle(sprintf('Candidate %d of %d, press h for instructions',...
+        status = valid(i);
+        
+        if status == 0
+            description = statuses.invalid;
+        elseif status == 1
+            description = statuses.valid;
+        elseif status == 3
+            description = statuses.contaminated;
+        else
+            description = statuses.unmarked;
+        end
+            
+        desc = description(1);
+        color = description(2);
+        
+        suptitle(sprintf('Press h for instructions\nCandidate %d of %d \n \\color{%s}%s',...
                 currentIdx-sum(skipCell(1:currentIdx)),... 
-                sum(~skipCell)))
+                sum(~skipCell), ...
+                color, ...
+                desc))
 
 %% define button actions
         if startFlag
@@ -120,15 +151,15 @@ while ~finished
             playEventMovie(movie, i, traces(i,:), events{i}(eventOrder(eventIdx)), centroids, outlines, skipCell)
         elseif strcmpi(reply,'y')   % valid 
             valid(i) = 1;
-            currentIdx=currentIdx+1;
+%             currentIdx=currentIdx+1;
             lastDir=1;
         elseif strcmpi(reply,'n')   % invalid
             valid(i) = 0;  
-            currentIdx=currentIdx+1;
+%             currentIdx=currentIdx+1;
             lastDir=1;
         elseif strcmpi(reply, 'c')  % contaminated 
             valid(i)=3; 
-            currentIdx=currentIdx+1;
+%             currentIdx=currentIdx+1;
             lastDir=1;
         elseif strcmpi(reply, 'f')  % forward
             currentIdx=currentIdx+1; 
@@ -140,6 +171,8 @@ while ~finished
             finished=1;
         elseif strcmpi(reply,'h')   % display instructions
             showInstructions
+        elseif strcmpi(reply,'d')
+            drawPolygon(filter, polygon)
         end
 
     else
@@ -169,7 +202,7 @@ function showInstructions
                'Style','text',...
                'FontSize',14,...
                'Position',[100 100 200 200],...
-               'String',{'Annotation Keys','','y = yes','n = no', 'c = maybe'});
+               'String',{'Annotation Keys','','y = yes','n = no', 'c = maybe', 'd = draw polygon'});
 
     txt = uicontrol('Parent',d,...
                'Style','text',...
