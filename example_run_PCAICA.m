@@ -7,8 +7,8 @@ p.PCAICA.max_iter = 750;
 p.PCAICA.nPCs = 800;
 p.PCAICA.nICs = 600;    
 
-mov_path = 'C:\Users\wojci\Desktop\UCL 4th\AB Spikes\example_code_original\example_code\preprocessed\preprocessedMovie.h5';
-save_path = 'C:\Users\wojci\Desktop\UCL 4th\AB Spikes\example_code_original\example_code\extracted\resultsPCAICA';
+mov_path = 'preprocessed/preprocessedMovie.h5';
+save_path = 'extracted/resultsPCAICA';
 
 
 %% run signal extraction
