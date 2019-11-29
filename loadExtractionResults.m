@@ -1,8 +1,8 @@
 %% Load movie, PCAICA results,
 
-mov_path = 'C:\Users\wojci\Desktop\UCL 4th\AB Spikes\example_code_original\example_code\preprocessed\preprocessedMovie.h5';
-extraction_results_path = 'C:\Users\wojci\Desktop\UCL 4th\AB Spikes\example_code_original\example_code\extracted\resultsPCAICA.mat';
-save_path = 'C:\Users\wojci\Desktop\UCL 4th\AB Spikes\example_code_original\example_code\sorted\annotationResult';
+mov_path = 'preprocessed/preprocessedMovie.h5';
+extraction_results_path = 'extracted/resultsPCAICA.mat';
+save_path = 'sorted/annotationResult';
 
 if (~checkIfExistsInWorkspace("movieLoaded"))
     fprintf("Loading the movie and PCAICA results... ");
