@@ -1,4 +1,4 @@
-function [valid] = cellChecker(p, movie, traces, filters, events, varargin)
+function [valid] = cellChecker(p, movie, traces, filters, events, annotationResultsPrev, varargin)
 
 statuses.valid = ["Marked as valid", "green"];
 statuses.invalid = ["Marked as invalid", "red"];
@@ -10,17 +10,18 @@ statuses.contaminated = ["Marked as contaminated", "yellow"];
 nCells=size(filters,3);
 currentIdx = 1;
 
+eventMontages=cell(length(events),1);
+
 % preallocate output
-valid = -1*ones(nCells,1);
+if (isempty(annotationResultsPrev))
+    valid = -1*ones(nCells,1);
+else
+    valid = annotationResultsPrev;
+end
+
 %% get necessary data
 
 [ areas,centroids,cvxHulls,cvxAreas,outlines ] = getFilterProps( filters );
-
-% get event montages
-eventMontages=cell(length(events),1);
-% for cInd=1:length(events)
-%      eventMontages{cInd} = getEventMontage(events{cInd}, traces(cInd,:), movie, centroids(cInd,:), filters(:,:,cInd));
-% end
 
 %% exclude cells that are too small or have no events
 
@@ -38,8 +39,6 @@ startFlag = 1;
 polygon = [];
 
 while ~finished   
-    
-    
     
     % set indices
     if i ~= currentIdx
