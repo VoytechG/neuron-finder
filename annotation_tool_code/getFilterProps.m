@@ -20,14 +20,7 @@ for i = 1:size(filters,3)
     cvxAreas(i) = props.ConvexArea;
     
     b = bwboundaries(pic);
-    outlines{i} = [b{1}(:,2) b{1}(:,1)];
-    
-    if (i == 1)
-        imshow(pic);
-        hold on;
-        plot(props.Centroid(1), props.Centroid(2), 'r*');
-    end
-    
+    outlines{i} = [b{1}(:,2) b{1}(:,1)];  
    
 end
 
