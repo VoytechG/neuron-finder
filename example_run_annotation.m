@@ -11,12 +11,11 @@ p.annotation.areaThresh = 0;
 p.annotation.numStdsForThresh = 3;
 p.annotation.minTimeBtwEvents = 10;
 
-%% run cellChecker 
+%% run cellChecker  
 % (this might take some time to load)
 fprintf("Running cell checker... ");
-valid = cellChecker(p, movie, traces, filters, events, annotationResultsPrev);
+[valid, validf] = cellChecker(p, movie, traces, filters, events, annotationResultsPrev);
 fprintf("Done.\nCell checker exited.\n")
-
 
 %% save 
 save_path = paths.annotation_results;
