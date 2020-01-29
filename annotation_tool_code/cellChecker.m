@@ -131,20 +131,23 @@ function [valid, validf] = cellChecker(p, movie, traces, filters, events, annota
             xlabel('Time (min)')
 
             % plot event montage
-            subplot(2,4,[3 4 7 8])
-
+            subplot(2,4,[3 4 7 8]);
+                        
+     
             if isempty(eventMontages{i})
                 title('Loading snapshots...')
                 eventMontages{i} = getEventMontage(events{i}, traces(i,:), movie, centroids(i,:), filters(:,:,i));
             end
             montage = eventMontages{i};
             imagesc(montage)
-            title(['Snapshots of ' num2str(length(events{i})) ' events'])
-            set (gcf, 'WindowButtonMotionFcn', @mouseMove);
+            title(['Snapshots of ' num2str(length(events{i})) ' events']);
             axis off
 
-            
             gridA = ceil(sqrt(max_marker));
+            
+            px = patch([0, 1, 1, 0] * 10, [0, 0, 1, 1] * 10, 'g');
+            setPatchForMouseMove(px, gridA, size(montage), max_marker);       
+           
             height = size(montage, 1) / gridA;
             width = size(montage, 2) / gridA;
             markerPosX = floor((marker-1)/gridA) * width;
@@ -288,10 +291,69 @@ function finished = finishingDialog
                'String','Ok',...
                'Callback','delete(gcf)');
 end
+
+
            
-function mouseMove (object, eventdata)
-%     disp(eventdata)
-%     C = get (gca, 'CurrentPoint');
-%     title(gca, ['(X,Y) = (', num2str(C(1,1)), ', ',num2str(C(1,2)), ')']);
+function setPatchForMouseMove(patch, squareGridLength, imgDim, no_events)
+          
+    set (gcf, 'WindowButtonMotionFcn', @movePatch);
+    
+    function movePatch (~, ~)
+        C = get (gca, 'CurrentPoint');
+        mouseX = C(1,1);
+        mouseY = C(1,2);
+        
+%         title(gca, ['(X,Y) = (', num2str(mouseX), ', ',num2str(mouseY), ')']);
+        
+        markerIndexUnderCursor = mousePositionToMarker( ...
+            squareGridLength, imgDim, mouseX, mouseY, no_events );
+                              
+        [selectionBoxX, selectionBoxY] = selectionBoxFromMarkerIndex( ...
+            markerIndexUnderCursor, imgDim, squareGridLength );
+        
+        patch.XData = selectionBoxX;
+        patch.YData = selectionBoxY;
+      
+    end
+
+    function markerIndexUnderCursor = ...
+            mousePositionToMarker(squareGridLength, imgDim, mouseX, mouseY, no_events)
+        
+        imgHeight = imgDim(1);
+        imgWidth = imgDim(2);
+        
+        mouseX_rel = limitValue(mouseX, 0, imgWidth) / imgWidth;
+        mouseY_rel = limitValue(mouseY, 0, imgHeight) / imgHeight;
+        
+        grid_x = min(floor(mouseX_rel * squareGridLength), squareGridLength - 1);
+        grid_y = min(floor(mouseY_rel * squareGridLength), squareGridLength - 1);
+        
+        markerIndexUnderCursor = squareGridLength * grid_x + grid_y + 1;
+        markerIndexUnderCursor = ...
+            limitValue(markerIndexUnderCursor, 2, no_events);
+    end
+
+    function [selectionBoxX, selectionBoxY] = ...
+            selectionBoxFromMarkerIndex(markerIndex, imgDim, squareGridLength)
+        imgHeight = imgDim(1);
+        imgWidth = imgDim(2);
+        
+        markerHeight = imgHeight / squareGridLength;
+        markerWidth = imgWidth / squareGridLength;
+        xs = [0, 0, 1, 1] * markerWidth;
+        ys = [0, 1, 1, 0] * markerHeight;                  
+
+        markerPosX = floor((markerIndex - 1) / squareGridLength) * markerWidth;
+        markerPosY = (mod(markerIndex - 1 , squareGridLength)) * markerHeight;
+        
+        selectionBoxX = xs + markerPosX;
+        selectionBoxY = ys + markerPosY;
+    end
+
+    function value = limitValue(value, Min, Max)
+        value = min(value, Max);
+        value = max(value, Min);
+    end
+        
 end
     
