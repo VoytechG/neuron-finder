@@ -1,4 +1,4 @@
-function [output] = myfunc(movie, varargin)
-    size(movie)
-    output = 'output';
+aa = 5;
+if (a < 7 )
+    bb = 56;
 end
