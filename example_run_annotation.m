@@ -1,7 +1,6 @@
-    close all
+close all
 %% set paths to load/save data
 run("filePaths.m");
-
 %% load data to workspssace if not loaded
 run("loadExtractionResults.m")
 

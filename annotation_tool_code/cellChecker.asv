@@ -20,7 +20,6 @@ persistent markings
 if isempty(markings)
     % TODO Refactor the size
     markings = zeros(600, 100) + 2;
-    disp("declaring markings for the first time");
 end
 
 % TODO Set properly
@@ -35,14 +34,7 @@ end
 
 %% get necessary data
 
-persistent areas;
-persistent centroids; 
-persistent outlines;
-if isempty(areas)
-    [ areas,centroids,~,~,outlines ] = getFilterProps( filters );
-end
-
-
+[ areas,centroids,cvxHulls,cvxAreas,outlines ] = getFilterProps( filters );
 
 %% exclude cells that are too small or have no events
 
@@ -348,9 +340,9 @@ set (gcf, 'WindowButtonMotionFcn', @movePatch);
         markerPosX = floor((markerIndex - 1) / squareGridLength) * markerWidth;
         markerPosY = (mod(markerIndex - 1 , squareGridLength)) * markerHeight;
         
-        empiricallyDeterminedOffset = 0.5;
-        selectionBoxX = xs + markerPosX + empiricallyDeterminedOffset;
-        selectionBoxY = ys + markerPosY + empiricallyDeterminedOffset;
+        empi = 1;
+        selectionBoxX = xs + markerPosX + em;
+        selectionBoxY = ys + markerPosY;
     end
 
     function value = limitValue(value, Min, Max)
