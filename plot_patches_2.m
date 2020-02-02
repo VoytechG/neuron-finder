@@ -1,3 +1,5 @@
+close all
+
 figure('Name','Patches');
 
 i1 = imread('rice.png');
@@ -23,19 +25,19 @@ s1();
 m1 = setPatchAndSubplotForMove(p1);
 m2 = setPatchAndSubplotForMove(p2);
 
-while 1 
+while 1
     s1();
     s2();
     waitforbuttonpress();
 end
 
 function f = setPatchForColorChange(patch)
-    f = @changePatchColor;
+f = @changePatchColor;
 
     function changePatchColor()
         color = patch.FaceColor;
         disp(patch.FaceColor)
-        if (isequal(color, [1,0,0])) 
+        if (isequal(color, [1,0,0]))
             color = 'g';
         else
             color = 'r';
@@ -45,12 +47,12 @@ function f = setPatchForColorChange(patch)
 end
 
 function f = setPatchAndSubplotForMove(patch)
-       
-    org_x = patch.XData;
-    org_y = patch.YData;
-    
-    f = @movePatch;
-    set (gcf, 'WindowButtonMotionFcn', @movePatch);
+
+org_x = patch.XData;
+org_y = patch.YData;
+
+f = @movePatch;
+set (gcf, 'WindowButtonMotionFcn', @movePatch);
 
     function movePatch (object, eventdata)
         C = get (gca, 'CurrentPoint');

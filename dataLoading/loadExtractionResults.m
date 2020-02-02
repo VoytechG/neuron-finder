@@ -1,7 +1,3 @@
-%% Setup
-allExtractionResultsLoaded = false;
-
-
 %% Load movie, PCAICA results
 
 if (~checkIfExistsInWorkspace("movieLoaded"))
