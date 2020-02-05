@@ -25,41 +25,46 @@ s1();
 m1 = setPatchAndSubplotForMove(p1);
 m2 = setPatchAndSubplotForMove(p2);
 
-while 1
-    s1();
-    s2();
-    waitforbuttonpress();
-end
+% while 1
+%     s1();
+%     s2();
+%     waitforbuttonpress();
+% end
+
+
 
 function f = setPatchForColorChange(patch)
 f = @changePatchColor;
 
-    function changePatchColor()
-        color = patch.FaceColor;
-        disp(patch.FaceColor)
-        if (isequal(color, [1,0,0]))
-            color = 'g';
-        else
-            color = 'r';
-        end
-        patch.FaceColor = color;
-    end
+    
 end
 
-function f = setPatchAndSubplotForMove(patch)
+function f = setPatchAndSubplotForMove(p)
 
-org_x = patch.XData;
-org_y = patch.YData;
+    org_x = p.XData;
+    org_y = p.YData;
 
-f = @movePatch;
-set (gcf, 'WindowButtonMotionFcn', @movePatch);
+    f = @movePatch;
+    set (gcf, 'WindowButtonMotionFcn', @movePatch);
+    set (gcf, 'WindowButtonMotionFcn', @movePatch);
 
     function movePatch (object, eventdata)
         C = get (gca, 'CurrentPoint');
         mouseX = C(1,1);
         mouseY = C(1,2);
         title(gca, ['(X,Y) = (', num2str(mouseX), ', ',num2str(mouseY), ')']);
-        patch.XData = org_x + mouseX;
-        patch.YData = org_y + mouseY;
+        p.XData = org_x + mouseX;
+        p.YData = org_y + mouseY;
+    end
+
+    function changePatchColor()
+        color = p.FaceColor;
+        disp(p.FaceColor);
+        if (isequal(color, [1,0,0]))
+            color = 'g';
+        else
+            color = 'r';
+        end
+        p.FaceColor = color;
     end
 end
