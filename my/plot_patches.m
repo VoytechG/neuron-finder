@@ -3,6 +3,8 @@ mouse = mouseXY(0,0);
 h=figure('units','normalized','outerposition',[0 0 1 1]);
 figure(h);
 
+% pats = [p1, p2];
+
 while 1 == 1
 
     s = subplot(2,1,1);
@@ -42,3 +44,5 @@ function obj = setFromGca(object, event)
     
     pause(0.1);
 end
+
+

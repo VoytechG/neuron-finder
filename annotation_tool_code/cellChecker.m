@@ -149,15 +149,6 @@ while ~finished
         
         setPatchForMouseMove(gridA, size(montage), max_marker);
         
-        %         height = size(montage, 1) / gridA;
-        %         width = size(montage, 2) / gridA;
-        %         markerPosX = floor((marker-1)/gridA) * width;
-        %         markerPosY = (mod(marker-1 , gridA)) * height;
-        %         xs = [0, 0, 1, 1] * width;
-        %         ys = [0, 1, 1, 0] * height;
-        %         patch('XData', xs + markerPosX, 'YData', ys + markerPosY,...
-        %             'EdgeColor','green','FaceColor','none','LineWidth',2);
-        
         %         for j = 2:max_marker
         %             status = markings(i, j);
         %             color = stats((status+1)*2);
@@ -188,7 +179,10 @@ while ~finished
         end
         figure(h);
         set(h, 'CurrentCharacter', 'k');
-        waitforbuttonpress();
+        keyWasPressed = 1;
+        while(waitforbuttonpress() ~= keyWasPressed)
+        end
+        
         reply=get(h, 'CurrentCharacter');
         
         if strcmpi(reply,'m') % event movie
@@ -296,8 +290,12 @@ end
 
 function setPatchForMouseMove(squareGridLength, imgDim, no_events)
 
-px = patch([0, 1, 1, 0] * 10, [0, 0, 1, 1] * 10, 'g');
-set (gcf, 'WindowButtonMotionFcn', @movePatch);
+    px = patch('XData', [0], 'YData', [0], ...
+           'EdgeColor','green','FaceColor','none','LineWidth',2);
+       
+    selectionPatches = [];  
+
+    set (gcf, 'WindowButtonMotionFcn', @movePatch);
 
     function movePatch (~, ~)
         C = get (gca, 'CurrentPoint');
