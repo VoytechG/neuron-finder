@@ -320,9 +320,9 @@ set(gcf, 'WindowButtonDownFcn', @clickOnPatch)
             [markerPosX, markerPosY, ~, ~] = ...
             getMarkerPositionAndDimensions(j, imgDim, squareGridLength);
         
-            padding = radius * 1.5;
-            posX = markerPosX + markerWidth - padding;
-            posY = markerPosY + padding;
+            margin = radius * 1.5;
+            posX = markerPosX + markerWidth - radius * 1.5;
+            posY = markerPosY + radius * 1.5;
             
             newSelectionPatch = patch( ...
                 'XData', posX + circle_x, ...

@@ -10,10 +10,19 @@ p.annotation.areaThresh = 0;
 p.annotation.numStdsForThresh = 3;
 p.annotation.minTimeBtwEvents = 10;
 
+%% Markgins
+if ~checkIfExistsInWorkspace('markings')
+    % TODO Refactor the size
+    disp("declaring markings for the first time");
+    markings = zeros(600, 100, 'int8') + 2;
+    
+end
+
 %% run cellChecker  
 % (this might take some time to load)
 fprintf("Running cell checker... ");
-[filterLabels, filterMatchingLabels] = cellChecker(p, movie, traces, filters, events, annotationResultsPrev);
+[filterLabels, filterMatchingLabels, markings] = cellChecker(...
+    p, movie, traces, filters, events, annotationResultsPrev, markings);
 fprintf("Done.\nCell checker exited.\n")
 
 %% save 

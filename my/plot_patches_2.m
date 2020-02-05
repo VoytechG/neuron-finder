@@ -19,6 +19,12 @@ x2 = [2 5; 2 5; 8 8] * 10;
 y2 = [4 0; 8 2; 4 0] * 10;
 p2 = patch(x2,y2,'r');
 
+pat = ones(2);
+pat(1) = p1;
+pat(2) = p2;
+
+pat(2).FaceColor = 'magenta';
+
 s1 = setPatchForColorChange(p1);
 s2 = setPatchForColorChange(p2);
 % s1();
