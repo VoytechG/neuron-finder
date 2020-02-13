@@ -1,5 +1,5 @@
-function [valid, validf, markings] = cellChecker(p, movie, traces, filters, events, ...
-    annotationResultsPrev, markings, varargin)
+function annotations = cellChecker(p, movie, traces, filters, events, ...
+    annotationsPrev, varargin)
 
 statuses.valid = ["Marked as valid", "green"];
 statuses.invalid = ["Marked as invalid", "red"];
@@ -16,17 +16,15 @@ currentIdx = 1;
 
 eventMontages=cell(length(events),1);
 
-% TODO Refactor marking annotations (0 bad, 1 good, 2 unmarked)
+% TODO Refactor Matching annotations (0 bad, 1 good, 2 unmarked)
 
-
-% TODO Set properly
-validf = [];
 
 % preallocate output
-if (isempty(annotationResultsPrev))
-    valid = -1*ones(nCells,1);
+if (isempty(annotationsPrev))
+    annotations.filters = 2*ones(1,nCells);
+    annotations.matchings = {};
 else
-    valid = annotationResultsPrev;
+    annotations = annotationsPrev;
 end
 
 %% get necessary data
@@ -59,7 +57,7 @@ loopCounter = 0;
 while ~finished
     
     loopCounter =  loopCounter + 1;
-    %         disp(loopCounter);
+
     % set indices
     if i ~= currentIdx
         i = currentIdx;
@@ -97,6 +95,7 @@ while ~finished
             if events{i}(e)>20 && events{i}(e) < size(traces,2)-30
                 thisTrans = traces(i,events{i}(e)-20:events{i}(e)+30);
                 transMat = cat(1,transMat,thisTrans);
+
             end
         end
         if ~isempty(transMat)
@@ -137,15 +136,18 @@ while ~finished
         imagesc(montage)
         title(['Snapshots of ' num2str(length(events{i})) ' events']);
         axis off
+
+        if (length(annotations.matchings) < i || isempty(annotations.matchings{i})) 
+            annotations.matchings{i} = zeros(1, length(events{i}) + 1) + 2;
+        end
         
         gridA = ceil(sqrt(max_marker));
         
         setPatchForMouseMove(gridA, size(montage), max_marker);
         
-        status = valid(i);
-        
-        desc = statusesIndexed((status+1),1);
-        color = statusesIndexed((status+1),2);
+        filterAnnotation = annotations.filters(i);
+        desc = statusesIndexed((filterAnnotation+1),1);
+        color = statusesIndexed((filterAnnotation+1),2);
         
         suptitle(sprintf('Press h for instructions\nCandidate %d of %d \n \\color{%s}%s',...
             currentIdx-sum(skipCell(1:currentIdx)),...
@@ -169,15 +171,15 @@ while ~finished
         if strcmpi(reply,'m') % event movie
             playEventMovie(movie, i, traces(i,:), events{i}(eventOrder(eventIdx)), centroids, outlines, skipCell)
         elseif strcmpi(reply,'y')   % valid
-            valid(i) = 1;
-            %             currentIdx=currentIdx+1;
+            annotations.filters(i) = 1;
+            annotations.matchings{i}(:) = 1;
             lastDir=1;
         elseif strcmpi(reply,'n')   % invalid
-            valid(i) = 0;
-            %             currentIdx=currentIdx+1;
+            annotations.filters(i) = 0;
+            annotations.matchings{i}(:) = 0;
             lastDir=1;
         elseif strcmpi(reply, 'c')  % contaminated
-            valid(i)=3;
+            annotations.filters(i)=3;
             %             currentIdx=currentIdx+1;
             lastDir=1;
         elseif strcmpi(reply, 'f')  % forward
@@ -199,14 +201,14 @@ while ~finished
         end
         
     else
-        valid(i)=0;
+%         annotations(i)=0;
         currentIdx=currentIdx+lastDir;
     end
     
     % when reaching end, show finishing dialog, if cells were skipped go back to 1
     if currentIdx>nCells
         currentIdx=1;
-        if sum(valid == -1) == 0
+        if sum(annotations.filters == -1) == 0
             finishingDialog
             finished = 1;
         end
@@ -288,14 +290,15 @@ set(gcf, 'WindowButtonDownFcn', @clickOnPatch)
         markerIndexUnderCursor = getPatchIndexUnderCursor( ...
             squareGridLength, imgDim, max_marker );
         
-        m = markings(i, markerIndexUnderCursor);
+        m = annotations.matchings{i}(markerIndexUnderCursor);
         if m == 0 || m == 2
             m = 1;
+            annotations.filters(i) = 1;
         else
             m = 0;
         end
        
-        markings(i, markerIndexUnderCursor) = m;
+        annotations.matchings{i}(markerIndexUnderCursor) = m;
         markingCirclePatches{markerIndexUnderCursor}.FaceColor = ...
             statusesIndexed(m + 1, 2);
         
@@ -313,9 +316,9 @@ set(gcf, 'WindowButtonDownFcn', @clickOnPatch)
         for j = 2:max_marker
        
             [circle_x, circle_y] = getCircleCoordinates(radius);
-            status = markings(i, j);
+            filterAnnotation = annotations.matchings{i}(j);
             
-            selectionColor = statusesIndexed(status+1, 2);
+            selectionColor = statusesIndexed(filterAnnotation+1, 2);
             
             [markerPosX, markerPosY, ~, ~] = ...
             getMarkerPositionAndDimensions(j, imgDim, squareGridLength);
