@@ -25,25 +25,25 @@ else
 end
 
 %% Load annotation results from previous session
-annotationResultsPrev = loadAnnotationResults(paths.annotation_results);
+annotationsPrev = loadannotations(paths.annotations);
 
 %% Mark as done for the next session
 allExtractionResultsLoaded = true;
 
 %% Helper functions
-function annotationResultsPrev = loadAnnotationResults(path)
-    if (~checkIfExistsInWorkspace("annotationResult"))
+function annotationsPrev = loadannotations(path)
+    if (~checkIfExistsInWorkspace("annotation"))
         if (~isfile(path))
             fprintf("No annotation results found.\n");
-            annotationResultsPrev = [];
+            annotationsPrev = {};
         else
             fprintf("Loading annotation results from the previous session... ")
-            load(path, "valid");
-            annotationResultsPrev = valid;
+            load(path, "annotations");
+            annotationsPrev = annotations;
             fprintf("Done.\n");
         end
     else
         fprintf("Annotation results already in the workspace, skipping the reload\n");
-        annotationResultsPrev = [];
+        annotationsPrev = [];
     end
 end
