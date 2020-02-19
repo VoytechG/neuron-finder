@@ -35,11 +35,13 @@ function annotationsPrev = loadannotations(path)
     if (~checkIfExistsInWorkspace("annotation"))
         if (~isfile(path))
             fprintf("No annotation results found.\n");
-            annotationsPrev = {};
+            annotationsPrev = [];
         else
             fprintf("Loading annotation results from the previous session... ")
-            load(path, "annotations");
-            annotationsPrev = annotations;
+            % load(path, "annotations");
+            % annotationsPrev = annotations;
+            annotationsPrev = Annotations();
+            annotationsPrev.load(path);
             fprintf("Done.\n");
         end
     else
@@ -47,3 +49,7 @@ function annotationsPrev = loadannotations(path)
         annotationsPrev = [];
     end
 end
+
+
+
+
