@@ -136,16 +136,16 @@ while ~finished
         
         pr = @sprintf;
         saveMessages = {
-            'Modifications {\color[rgb]{.8 .2 .0} not saved} (press S to save)', ...
-            'Annotations {\color{green}saved}'            
+            'Modifications not saved (press S to save)', ...
+            'Annotations saved'            
         };
         headerMessages = [
             pr('Press h for instructions\n'), ...
             pr('Candidate %d of %d \n', currentIdx - sum(skipCell(1:currentIdx)), sum(~skipCell)), ...
             pr('%s\n', saveMessages{modificationsSaved + 1}), ...
-            pr('\color{%s}%s', color, desc)
+            pr('{\color[rgb]{%s}%s }', color, desc)
         ];
-        % header = "";
+        % header = '';
         % for message = headerMmessages
         %     header = header + message;
         % end
@@ -169,14 +169,16 @@ while ~finished
         elseif strcmpi(reply,'y')   % valid
             annotations.filters(i) = AnnotationLabel.Valid;
             annotations.matchings{i}(:) = AnnotationLabel.Valid;
+            modificationsSaved = false;
             lastDir=1;
         elseif strcmpi(reply,'n')   % invalid
             annotations.filters(i) = AnnotationLabel.Invalid;
             annotations.matchings{i}(:) = AnnotationLabel.Invalid;
+            modificationsSaved = false;
             lastDir=1;
         elseif strcmpi(reply, 'c')  % contaminated
             annotations.filters(i) = AnnotationLabel.Contaminated;
-            %             currentIdx=currentIdx+1;
+            modificationsSaved = false;
             lastDir=1;
         elseif strcmpi(reply, 'f')  % forward
             currentIdx=currentIdx+1;
@@ -204,7 +206,6 @@ while ~finished
         currentIdx=currentIdx+lastDir;
     end
 
-    modificationsSaved = false;
     
     % when reaching end, show finishing dialog, if cells were skipped go back to 1
     if currentIdx>nFilters
@@ -279,7 +280,8 @@ close(h)
             markerIndexUnderCursor = getRectangleMarkerIndexUnderCursor( ...
                 squareGridLength, imgDim, no_events );
 
-            eventIdx = markerIndexUnderCursor - 1;
+            matchingIndex = markerIndexUnderCursor - 1;
+            eventIdx = matchingIndex;
             
             [selectionBoxX, selectionBoxY] = selectionBoxFromMarkerIndex( ...
                 markerIndexUnderCursor, imgDim, squareGridLength );
@@ -292,8 +294,10 @@ close(h)
         function clickOnPatch (~, ~)
             markerIndexUnderCursor = getRectangleMarkerIndexUnderCursor( ...
                 squareGridLength, imgDim, no_events );
+
+            matchingIndex = markerIndexUnderCursor - 1;
             
-            m = annotations.matchings{i}(markerIndexUnderCursor);
+            m = annotations.matchings{i}(matchingIndex);
             if ismember(m,  [AnnotationLabel.Invalid, AnnotationLabel.NotAnnotated])
                 m = AnnotationLabel.Valid;
                 annotations.filters(i) = m;
@@ -301,9 +305,10 @@ close(h)
                 m = AnnotationLabel.Invalid;
             end
 
-            annotations.matchings{i}(markerIndexUnderCursor) = m;
+            annotations.matchings{i}(matchingIndex) = m;
             markingCirclePatches{markerIndexUnderCursor}.FaceColor = m.color;
-            
+
+            modificationsSaved = false;
         end
         
         function selectionPatches = generateMarkingSelectionPatches(no_events)
@@ -375,9 +380,10 @@ close(h)
             grid_x = min(floor(mouseX_rel * squareGridLength), squareGridLength - 1);
             grid_y = min(floor(mouseY_rel * squareGridLength), squareGridLength - 1);
             
+            numberOfImageTilesDisplayed = no_events + 1;
             markerIndexUnderCursor = squareGridLength * grid_x + grid_y + 1;
             markerIndexUnderCursor = ...
-                limitValue(markerIndexUnderCursor, 2, no_events);
+                limitValue(markerIndexUnderCursor, 2, numberOfImageTilesDisplayed);
         end
         
         function [selectionBoxX, selectionBoxY] = ...
@@ -415,5 +421,7 @@ close(h)
 
     function saveAnnotations()
         annotations.save(savePath);
+        modificationsSaved = true;
+
     end
 end
