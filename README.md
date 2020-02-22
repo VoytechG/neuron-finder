@@ -1,1 +1,2 @@
-# neuron-finder
+### Modifications introduced
+1. Filtering low quality filters (i.e. Removing filters with no events and low area neuron detections) has been moved from `cellChecker()` to the `getPeaks()`, which now returns array without low quality fitlers at all.
