@@ -15,10 +15,11 @@ end
 %% Find events 
 
 % get event times
-if (~checkIfExistsInWorkspace("peaksComputed"))
+if (~checkIfExistsInWorkspace("eventsComputed"))
     fprintf("Getting event times... ");
     events = getPeaks(p, double(traces));
-    peaksComputed = true;
+    % events = removeLowQualityFilters(p, events);
+    eventsComputed = true;
     fprintf("Done.\n");
 else
     fprintf("Peaks already in the workspace, skipping the computation.\n");

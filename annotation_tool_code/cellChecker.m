@@ -1,3 +1,9 @@
+% p - ...
+% movie - the source movie
+% traces - filter responses for each frame
+% filters - 
+% events - matchings of each filter
+
 function annotations = cellChecker(p, movie, traces, filters, events, ...
     annotationsPrev, savePath, varargin)
 
@@ -28,17 +34,16 @@ end
 %% exclude cells that are too small or have no events
 
 tooSmall = areas <= p.annotation.areaThresh;
-noEvents = cellfun(@(x) isempty(x), events);
-skipCell = noEvents | tooSmall;
+numberOfEvents = cellfun(@(x) isempty(x), events);
+skipCell = numberOfEvents | tooSmall;
 
 %% Go through each cell
 
-h=figure('units','normalized','outerposition',[0 0 1 1]);
+h = figure('units','normalized','outerposition',[0 0 1 1]);
 finished = false;
 lastDir = 1;
 i = 0;
 startFlag = 1;
-polygon = [];
 loopCounter = 0;
 
 modificationsSaved = true;
