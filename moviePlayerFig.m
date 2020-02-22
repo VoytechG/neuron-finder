@@ -31,14 +31,17 @@ end
 
 
 %% display
-displayEventsOnFrame(movie, eventsForFrames, outlines, centroids);
+initialFrame = 1234;
+displayEventsOnFrame(movie, eventsForFrames, outlines, centroids, initialFrame);
 
-function displayEventsOnFrame(movie, eventsForFrames, outlines, centroids)
+function displayEventsOnFrame(movie, eventsForFrames, outlines, centroids, frameIndex)
 
-    frameIndex = 19;
     imagesc(movie(:, :, frameIndex))
     % imagesc(filters(:, :, eventsForFrames{frameIndex}{2}));
-    colormap gray
+%     colormap gray
+
+    set (gcf, 'WindowButtonMotionFcn', @onMouseMove);
+    set (gcf, 'KeyPressFcn', @onKeyPress);
 
     outlinePatches = {};
     for i = 1:length(eventsForFrames{frameIndex})
@@ -51,7 +54,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, centroids)
 
         text('Position', [max(xs) + 2, max(ys) + 2], ...
             'String', sprintf("%d", filterIndex), ...
-            'Color', 'red', 'FontSize', 16, 'FontWeigth', 'Bold');
+            'Color', 'red', 'FontSize', 16, 'FontWeight', 'Bold');
         
         outlinePatches{end + 1} = px;
         
@@ -61,7 +64,17 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, centroids)
             'EdgeColor','red','FaceColor','red','LineWidth', 2);
     end
 
-    set (gcf, 'WindowButtonMotionFcn', @onMouseMove);
+    function onKeyPress(~,event)
+        disp(event);
+        keyPressed = event.Key;
+        disp(keyPressed);
+
+        if strcmp(keyPressed, 'rightarrow')
+            displayEventsOnFrame(movie, eventsForFrames, outlines, centroids, frameIndex + 1);
+        elseif strcmp(keyPressed, 'leftarrow')
+            displayEventsOnFrame(movie, eventsForFrames, outlines, centroids, frameIndex - 1);
+        end
+    end
 
     function onMouseMove(~, ~)
         
