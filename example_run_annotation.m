@@ -1,6 +1,4 @@
-close all
-%% set paths to load/save data
-run("filePaths.m");
+%   close all
 %% load data to workspssace if not loaded
 run("loadExtractionResults.m")
 
