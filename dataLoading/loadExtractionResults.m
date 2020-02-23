@@ -1,3 +1,6 @@
+%% set paths to load/save data
+run("filePaths.m");
+
 %% Load movie, PCAICA results
 
 if (~checkIfExistsInWorkspace("movieLoaded"))
