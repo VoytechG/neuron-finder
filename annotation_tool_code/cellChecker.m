@@ -417,11 +417,6 @@ close(h)
             markerPosX = floor((markerIndex - 1) / squareGridLength) * markerWidth;
             markerPosY = (mod(markerIndex - 1 , squareGridLength)) * markerHeight;
         end
-        
-        function value = limitValue(value, Min, Max)
-            value = min(value, Max);
-            value = max(value, Min);
-        end
     end
 
     function saveAnnotations()
