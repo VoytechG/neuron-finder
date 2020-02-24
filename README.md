@@ -30,3 +30,7 @@ Frame Viewer can be used to inspect the original video and determine whether all
 1. discard action if mouse outside of figure
 2. in frame viewer: display all filter events (matches) for that frame, display filter number aside the matches, make matches clickable. Clicking would navigate to the corresponding filter in the cell checker
 
+
+### Trying different colormaps
+default parula provides best color range
+grayscale is to low in variatey, jet is too high  
