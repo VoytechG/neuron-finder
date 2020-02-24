@@ -1,13 +1,15 @@
 %% load data to workspssace if not loaded
 run("loadExtractionResults.m")
 
-
 %% compute events with custom params 
 peakFinderParams = PeakFinderParams();
-peakFinderParams.stdToSignalRatioMult = p.annotation.numStdsForThresh;
-peakFinderParams.minTimeBtwEvents = p.annotation.minTimeBtwEvents;
+% peakFinderParams.stdToSignalRatioMult = p.annotation.numStdsForThresh;
+% peakFinderParams.minTimeBtwEvents = p.annotation.minTimeBtwEvents;
 
-events = getPeaks(p, double(traces), ...
+peakFinderParams.stdToSignalRatioMult = 2;
+peakFinderParams.minTimeBtwEvents = 5;
+
+eventsForFrameInspector = getPeaks(p, double(traces), ...
     peakFinderParams.stdToSignalRatioMult, ...
     peakFinderParams.minTimeBtwEvents);
 
@@ -21,7 +23,9 @@ end
 
 %% Display frame veiwer
 initialFrame = 1234;
-eventsForFrames = getEventsForFrames(events, movie);
+eventsForFrames = getEventsForFrames(eventsForFrameInspector, movie);
+
+figure('units','normalized','outerposition',[0 0 1 1])
 displayEventsOnFrame(movie, eventsForFrames, outlines, centroids, ...
      initialFrame, p, traces, peakFinderParams);
 
@@ -44,58 +48,85 @@ end
 
 function displayEventsOnFrame(movie, eventsForFrames, outlines, ... 
     centroids, frameIndex, p, traces, peakFinderParams)
+    numberOfFrames = size(movie, 3);
+
     outlinePatches = {};
+    cursorPatch = 0;
+
+    colors.peakColor = Color.red;
+    colors.nonPeakColor = Color.pink;
 
     createPlot();
 
     function createPlot() 
 
         imagesc(movie(:, :, frameIndex))
-        % colormap gray
+        colormap parula
         setTitle();
     
-        set (gcf, 'WindowButtonMotionFcn', @onMouseMove);
+        % set (gcf, 'WindowButtonMotionFcn', @onMouseMove);
         set (gcf, 'KeyPressFcn', @onKeyPress);
-    
-        numberOfEventsInFrame = length(eventsForFrames{frameIndex});
 
-        for eventIndex = 1:numberOfEventsInFrame
-            filterIndex = eventsForFrames{frameIndex}{eventIndex};
-    
-            xs = outlines{filterIndex}(:, 1);
-            ys = outlines{filterIndex}(:, 2);
-            px = patch('XData', xs, 'YData', ys, ...
-                'EdgeColor','red','FaceColor','none','LineWidth', 2);
-    
-            text('Position', [max(xs) + 2, max(ys) + 2], ...
-                'String', sprintf('%d', filterIndex), ...
-                'Color', 'red', 'FontSize', 16, 'FontWeight', 'Bold');
-            
-            outlinePatches{eventIndex} = px;
-            
-            xs = [centroids(filterIndex, 1), centroids(filterIndex, 1) + 0.1];
-            ys = [centroids(filterIndex, 2), centroids(filterIndex, 2) + 0.1];
-    
-            patch('XData', xs, 'YData', ys, ...
-                'EdgeColor','red','FaceColor','red','LineWidth', 2);
+        outlinePatches = {};    
+        
+        % On top of peaks in this frame, we also display peaks found before and after
+        % this frame. We look back and forth only within the bounds of the minTimeBtwEvents
+        % parameter. This is because we inspect only a local maximum. If peak appeared before 
+        % or after within these bounds, but not in this frame, it means this local scope has 
+        % a valid maximum. If no peak is shown, it means that in this local neighbourhood no 
+        % peak at all was detected. 
+        earliestPossibleFrameOfLocalPeakDetection = ... 
+        max(1, frameIndex - peakFinderParams.minTimeBtwEvents + 1);
+        
+        latestPossibleFrameOfLocalPeakDetection = ...
+        min(frameIndex + peakFinderParams.minTimeBtwEvents - 1, numberOfFrames);
+        
+        a = earliestPossibleFrameOfLocalPeakDetection;
+        b = latestPossibleFrameOfLocalPeakDetection;
+        
+        patchIndex = 0;
+        for dispFrameIndex = a:b
+            numberOfEventsInFrame = length(eventsForFrames{dispFrameIndex});
+            for eventIndex = 1:numberOfEventsInFrame
+                filterIndex = eventsForFrames{dispFrameIndex}{eventIndex};
+                frameDistanceToPeakFrame = dispFrameIndex - frameIndex;
+                filterPatch = drawEventOutlinePatch(filterIndex, frameDistanceToPeakFrame);
+                
+                patchIndex = patchIndex + 1;
+                outlinePatches{patchIndex} = filterPatch;
+
+            end
+        end
+    end
+
+    function px = drawEventOutlinePatch(filterIndex, frameDistanceToPeakFrame)
+
+        if frameDistanceToPeakFrame == 0
+            color = colors.peakColor;
+            lineWidth = 2;
+        else
+            color = colors.nonPeakColor; 
+            lineWidth = 1;
         end
 
+        xs = outlines{filterIndex}(:, 1);
+        ys = outlines{filterIndex}(:, 2);
+        px = patch('XData', xs, 'YData', ys, ...
+            'EdgeColor',color,'FaceColor','none','LineWidth', lineWidth);
+
+        if frameDistanceToPeakFrame > 0
+            frameDistanceToPeakFrameString = sprintf('+%d', frameDistanceToPeakFrame);
+        else 
+            frameDistanceToPeakFrameString = sprintf('%d', frameDistanceToPeakFrame);
+        end
+
+        % patchLabel = sprintf('(%s) %d', frameDistanceToPeakFrameString, filterIndex);
+        patchLabel = frameDistanceToPeakFrameString;
+        text('Position', [max(xs) + 2, max(ys) + 2], 'String', patchLabel, ...
+            'Color', color, 'FontSize', 16, 'FontWeight', 'Bold');
     end
 
     function setTitle()
-
-        % if nargin == 0
-        %     peakCalculationPending = 0;
-        % end
-
-        % disp("settign title");
-
-        % if peakCalculationPending
-        %     topLine = sprintf('Frame %d (peak calculation pending)\n', frameIndex);
-        % else
-        %     topLine = sprintf('Frame %d \n', frameIndex);
-        % end
-
         title(gca, {
             sprintf('Frame %d \n', frameIndex) , ...
             sprintf('<A-S> std constant : %.2f', peakFinderParams.stdToSignalRatioMult), ...
@@ -107,9 +138,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
         % disp(event);
         keyPressed = event.Key;
         % disp(keyPressed);
-        
-        numberOfFrames = size(movie, 3);
-
+    
         if strcmp(keyPressed, 'rightarrow')
             newFrameIndex = limitValue(frameIndex + 1, 1, numberOfFrames);
             displayEventsOnFrame(movie, eventsForFrames, ... 
@@ -169,9 +198,8 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
             if inpolygonTest
                 px.EdgeColor = 'green';
                 px.LineWidth = 3;
-            else
-                px.EdgeColor = 'red';
-                px.LineWidth = 2;
+            % else
+            %     body
             end
         end
         
@@ -185,12 +213,8 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
         eventsForFrames = getEventsForFrames(events, movie);
         
-        disp("Already got peaks")
-        % displayEventsOnFrame(movie, eventsForFrames, ... 
-        %     outlines, centroids, frameIndex, p, traces, peakFinderParams);
         createPlot();
 
     end
 
 end
-
