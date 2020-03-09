@@ -2,7 +2,7 @@
 %% load data to workspssace if not loaded
 run("loadExtractionResults.m")
 
-%% set params
+%% set paramsq
 p.frameRate = 5;
 p.annotation.areaThresh = 0; 
 p.annotation.numStdsForThresh = 3;

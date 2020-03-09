@@ -19,7 +19,7 @@ if ~checkIfExistsInWorkspace('areas')
     [areas,centroids,cvxHulls,cvxAreas,outlines] = ...
         getFilterProps( filters );
 end
-
+ 
 
 %% Display frame veiwer
 initialFrame = 1234;

@@ -4,6 +4,10 @@
 % filters - 
 % events - matchings of each filter
 
+% TODO 
+% - prevent mouse annotation when mouse outside of the window 
+%   (check if mouse within window bounds)
+
 function annotations = cellChecker(p, movie, traces, filters, events, ...
     annotationsPrev, savePath, varargin)
 
@@ -106,6 +110,21 @@ while ~finished
             plot(events{i},traces(i,events{i}),'r*');
             hold off
         end
+        % if ~isempty(events{i})
+        %     hold on
+        %     for eventIndex = 1:no_events
+        %         ann = annotations.matchings{i}(eventIndex);
+        %         if ann == AnnotationLabel.Valid
+        %             peakColor = 'g*';
+        %         elseif ann == AnnotationLabel.Invalid
+        %             peakColor = 'r*';
+        %         else 
+        %             peakColor = 'b*';
+        %         end
+        %         plot(events{i}(eventIndex),traces(i,events{i}(eventIndex)), peakColor);
+        %     end
+        %     hold off
+        % end
         set(gca,'ylim',[min(traces(i,:)) max(traces(i,:))])
         set(gca,'YTick',[])
         title('Full Activity Trace')
