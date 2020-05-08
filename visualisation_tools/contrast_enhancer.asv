@@ -1,0 +1,30 @@
+frame1 = movie(:, :, 1);
+e_frame1 = enhanceImage(frame1);
+
+% imagesc(e_frame1);
+
+M = movie;
+[height, width, num_frames] = size(M);
+mins = zeros(num_frames);
+avgs = zeros(num_frames);
+maxs = zeros(num_frames);
+
+t = cputime;
+
+for i = 1:num_frames
+    mins(i) = min(min(M(:, :, i)));
+    maxs(i) = max(max(M(:, :, i)));
+    avgs(i) = mean(mean(M(:, :, i)));
+end
+
+disp(cputime - t);
+
+plot(1:1000, maxs-mins);
+
+function enhancedImage = enhanceImage(originalImage)
+    enhancedImage = originalImage;
+end
+
+
+
+calcSD = @(A) arrayfun(@(x) x^2, A - mean(mean(A)));
