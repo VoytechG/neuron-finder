@@ -22,7 +22,7 @@ end
  
 
 %% Display frame veiwer
-initialFrame = 1234;
+initialFrame = 1220;
 eventsForFrames = getEventsForFrames(eventsForFrameInspector, movie);
 
 figure('units','normalized','outerposition',[0 0 1 1])

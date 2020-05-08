@@ -8,7 +8,7 @@ p.PCAICA.nPCs = 800;
 p.PCAICA.nICs = 600;    
 
 mov_path = 'preprocessed/preprocessedMovie.h5';
-save_path = 'extracted/resultsPCAICA';
+save_path = 'extracted/resultsPCAICA/new';
 
 
 %% run signal extraction
