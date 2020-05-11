@@ -13,6 +13,7 @@ def pooling(pretrained_weights=None, input_size=(256, 256, 1)):
     inputs = layers.Input(input_size)
 
     outs = layers.MaxPooling2D(pool_size=(2, 2))(inputs)
+    outs = layers.UpSampling2D(size=(2, 2))(outs)
 
     # Model
     model = keras.Model(inputs=inputs, outputs=outs)
@@ -21,9 +22,6 @@ def pooling(pretrained_weights=None, input_size=(256, 256, 1)):
                   loss='binary_crossentropy', metrics=['accuracy'])
 
     model.summary()
-
-    if(pretrained_weights):
-        model.load_weights(pretrained_weights)
 
     return model
 

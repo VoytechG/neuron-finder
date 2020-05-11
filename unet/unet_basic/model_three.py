@@ -115,25 +115,25 @@ def unet3d(pretrained_weights=None,
     convout = layers.Reshape((height, width, 1))(convout)
 
     # ----------------------- binary cross entropy ----------------------------
-    if not categorical_cross_entropy:
+    # if not categorical_cross_entropy:
 
-        convout = layers.Conv3D(1, 1, activation='sigmoid')(convup1)
+    #     convout = layers.Conv3D(1, 1, activation='sigmoid')(convup1)
 
-        model = keras.Model(inputs=inputs, outputs=convout)
+    #     model = keras.Model(inputs=inputs, outputs=convout)
 
-        model.compile(optimizer=keras.optimizers.Adam(lr=1e-4),
-                      loss='binary_crossentropy', metrics=['accuracy'])
+    #     model.compile(optimizer=keras.optimizers.Adam(lr=1e-4),
+    #                   loss='binary_crossentropy', metrics=['accuracy'])
     # ----------------------- binary cross entropy ----------------------------
 
     # --------------------- categorical crossentropy --------------------------
-    else:
-        model = keras.Model(inputs=inputs, outputs=convout)
+    # else:
+    model = keras.Model(inputs=inputs, outputs=convout)
 
-        model.compile(
-            optimizer=keras.optimizers.Adam(lr=1e-4),
-            loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            metrics=['accuracy']
-        )
+    model.compile(
+        optimizer=keras.optimizers.Adam(lr=1e-4),
+        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=['accuracy']
+    )
     # --------------------- categorical crossentropy --------------------------
 
     if(pretrained_weights):

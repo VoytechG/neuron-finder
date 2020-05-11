@@ -18,7 +18,7 @@ def demo_training(model):
 
     model_checkpoint = keras.callbacks.ModelCheckpoint(
         'unet_membrane.hdf5', monitor='loss', verbose=1, save_best_only=True)
-    model.fit_generator(myGene, steps_per_epoch=300, epochs=1,
+    model.fit_generator(myGene, steps_per_epoch=30, epochs=1,
                         callbacks=[model_checkpoint])
 
     testGene = testGenerator("data/membrane/test")
