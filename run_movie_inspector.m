@@ -6,8 +6,8 @@ peakFinderParams = PeakFinderParams();
 % peakFinderParams.stdToSignalRatioMult = p.annotation.numStdsForThresh;
 % peakFinderParams.minTimeBtwEvents = p.annotation.minTimeBtwEvents;
 
-peakFinderParams.stdToSignalRatioMult = 2;
-peakFinderParams.minTimeBtwEvents = 5;
+peakFinderParams.stdToSignalRatioMult = 1.0;
+peakFinderParams.minTimeBtwEvents = 4;
 
 eventsForFrameInspector = getPeaks(p, double(traces), ...
     peakFinderParams.stdToSignalRatioMult, ...
@@ -22,12 +22,13 @@ end
 %% Display frame veiwer
 initialFrame = 100;
 eventsForFrames = getEventsForFrames(eventsForFrameInspector, movie);
-% cropLimits = [-0.075, 0.100];
+
+% crop limits set at the mean min and max brightness values
 cropLimits = [-0.045, 0.075];
 
 figure('units', 'normalized', 'outerposition', [0 0 1 1])
 displayEventsOnFrame(movie, eventsForFrames, outlines, centroids, ...
-    initialFrame, p, traces, peakFinderParams, cropLimits);
+    initialFrame, p, traces, peakFinderParams, cropLimits, false);
 
 %% Functions
 function eventsForFrames = getEventsForFrames(events, movie)
@@ -51,14 +52,15 @@ function eventsForFrames = getEventsForFrames(events, movie)
 end
 
 function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
-        centroids, frameIndex, p, traces, peakFinderParams, cropLimits)
+        centroids, frameIndex, p, traces, peakFinderParams, cropLimits, ...
+        paramsModified)
     numberOfFrames = size(movie, 3);
 
     outlinePatches = {};
     cursorPatch = 0;
 
-    colors.peakColor = Color.red;
-    colors.nonPeakColor = Color.pink;
+    colors.peakColor = "0 0 0 0.5";
+    colors.nonPeakColor = Color.red;
 
     createPlot();
 
@@ -72,6 +74,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
         imagesc(movie(:, :, frameIndex), cropLimits);
         colormap parula
+        % colormap gray
         setTitle();
 
         % set (gcf, 'WindowButtonMotionFcn', @onMouseMove);
@@ -115,6 +118,8 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
     function px = drawEventOutlinePatch(filterIndex, frameDistanceToPeakFrame)
 
+        drawText = 0;
+
         if frameDistanceToPeakFrame == 0
             color = colors.peakColor;
             lineWidth = 2;
@@ -128,24 +133,37 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
         px = patch('XData', xs, 'YData', ys, ...
             'EdgeColor', color, 'FaceColor', 'none', 'LineWidth', lineWidth);
 
-        if frameDistanceToPeakFrame > 0
-            frameDistanceToPeakFrameString = sprintf('+%d', frameDistanceToPeakFrame);
-        else
-            frameDistanceToPeakFrameString = sprintf('%d', frameDistanceToPeakFrame);
+        if drawText
+
+            if frameDistanceToPeakFrame > 0
+                frameDistanceToPeakFrameString = sprintf('+%d', frameDistanceToPeakFrame);
+            else
+                frameDistanceToPeakFrameString = sprintf('%d', frameDistanceToPeakFrame);
+            end
+
+            % patchLabel = sprintf('(%s) %d', frameDistanceToPeakFrameString, filterIndex);
+            patchLabel = frameDistanceToPeakFrameString;
+            text('Position', [max(xs) + 2, max(ys) + 2], 'String', patchLabel, ...
+                'Color', color, 'FontSize', 16, 'FontWeight', 'Bold');
         end
 
-        % patchLabel = sprintf('(%s) %d', frameDistanceToPeakFrameString, filterIndex);
-        patchLabel = frameDistanceToPeakFrameString;
-        text('Position', [max(xs) + 2, max(ys) + 2], 'String', patchLabel, ...
-            'Color', color, 'FontSize', 16, 'FontWeight', 'Bold');
     end
 
     function setTitle()
+
+        if paramsModified
+            save_msg = sprintf('<P> save values for use in cell checker (modifications unsaved)');
+        else
+            save_msg = sprintf('<P> save values for use in cell checker');
+        end
+
         title(gca, {
         sprintf('Frame %d \n', frameIndex), ...
             sprintf('<A-S> std constant : %.2f', peakFinderParams.stdToSignalRatioMult), ...
-            sprintf('<Z-X> min dist btw events : %d \n', peakFinderParams.minTimeBtwEvents) ...
-            });
+            sprintf('<Z-X> min dist btw events : %d', peakFinderParams.minTimeBtwEvents), ...
+            save_msg, ...
+            newline
+        });
     end
 
     function onKeyPress(~, event)
@@ -157,33 +175,42 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
             newFrameIndex = limitValue(frameIndex + 1, 1, numberOfFrames);
             displayEventsOnFrame(movie, eventsForFrames, ...
                 outlines, centroids, newFrameIndex, p, traces, ...
-                peakFinderParams, cropLimits);
+                peakFinderParams, cropLimits, paramsModified);
 
         elseif strcmp(keyPressed, 'leftarrow')
             newFrameIndex = limitValue(frameIndex - 1, 1, numberOfFrames);
             displayEventsOnFrame(movie, eventsForFrames, ...
                 outlines, centroids, newFrameIndex, p, traces, ...
-                peakFinderParams, cropLimits);
+                peakFinderParams, cropLimits, paramsModified);
 
         elseif strcmp(keyPressed, 'a')
             peakFinderParams.stdToSignalRatioMult = limitValue(...
                 peakFinderParams.stdToSignalRatioMult - 0.1, 0.1, 100);
+            paramsModified = true;
             recomputePeaksAndRefresh();
 
         elseif strcmp(keyPressed, 's')
             peakFinderParams.stdToSignalRatioMult = limitValue(...
                 peakFinderParams.stdToSignalRatioMult + 0.1, 0.1, 100);
+            paramsModified = true;
             recomputePeaksAndRefresh();
 
         elseif strcmp(keyPressed, 'z')
             peakFinderParams.minTimeBtwEvents = limitValue(...
                 peakFinderParams.minTimeBtwEvents - 1, 0, 100);
+            paramsModified = true;
             recomputePeaksAndRefresh();
 
         elseif strcmp(keyPressed, 'x')
             peakFinderParams.minTimeBtwEvents = limitValue(...
                 peakFinderParams.minTimeBtwEvents + 1, 0, 100);
+            paramsModified = true;
             recomputePeaksAndRefresh();
+
+        elseif strcmp(keyPressed, 'p')
+            save('movie_inspector_code/peakFinderParams', 'peakFinderParams');
+            paramsModified = false;
+            refresh();
 
         elseif strcmp(keyPressed, 'q')
             close
@@ -224,6 +251,10 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
     end
 
+    function refresh()
+        createPlot();
+    end
+
     function recomputePeaksAndRefresh()
 
         events = getPeaks(p, double(traces), ...
@@ -232,7 +263,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
             eventsForFrames = getEventsForFrames(events, movie);
 
-            createPlot();
+            refresh();
 
         end
 
