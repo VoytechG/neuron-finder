@@ -2,12 +2,17 @@
 run("loadExtractionResults.m")
 
 %% compute events with custom params
-peakFinderParams = PeakFinderParams();
+
+% peakFinderParams = PeakFinderParams();
 % peakFinderParams.stdToSignalRatioMult = p.annotation.numStdsForThresh;
 % peakFinderParams.minTimeBtwEvents = p.annotation.minTimeBtwEvents;
 
-peakFinderParams.stdToSignalRatioMult = 1.0;
-peakFinderParams.minTimeBtwEvents = 4;
+try 
+    load(paths.peak_finder_params);
+catch E
+    peakFinderParams.stdToSignalRatioMult = 1.5;
+    peakFinderParams.minTimeBtwEvents = 4;
+end
 
 eventsForFrameInspector = getPeaks(p, double(traces), ...
     peakFinderParams.stdToSignalRatioMult, ...
@@ -28,7 +33,7 @@ cropLimits = [-0.045, 0.075];
 
 figure('units', 'normalized', 'outerposition', [0 0 1 1])
 displayEventsOnFrame(movie, eventsForFrames, outlines, centroids, ...
-    initialFrame, p, traces, peakFinderParams, cropLimits, false);
+    initialFrame, p, traces, peakFinderParams, cropLimits, false, paths);
 
 %% Functions
 function eventsForFrames = getEventsForFrames(events, movie)
@@ -53,7 +58,7 @@ end
 
 function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
         centroids, frameIndex, p, traces, peakFinderParams, cropLimits, ...
-        paramsModified)
+        paramsModified, paths)
     numberOfFrames = size(movie, 3);
 
     outlinePatches = {};
@@ -175,13 +180,13 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
             newFrameIndex = limitValue(frameIndex + 1, 1, numberOfFrames);
             displayEventsOnFrame(movie, eventsForFrames, ...
                 outlines, centroids, newFrameIndex, p, traces, ...
-                peakFinderParams, cropLimits, paramsModified);
+                peakFinderParams, cropLimits, paramsModified, paths);
 
         elseif strcmp(keyPressed, 'leftarrow')
             newFrameIndex = limitValue(frameIndex - 1, 1, numberOfFrames);
             displayEventsOnFrame(movie, eventsForFrames, ...
                 outlines, centroids, newFrameIndex, p, traces, ...
-                peakFinderParams, cropLimits, paramsModified);
+                peakFinderParams, cropLimits, paramsModified, paths);
 
         elseif strcmp(keyPressed, 'a')
             peakFinderParams.stdToSignalRatioMult = limitValue(...
@@ -208,7 +213,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
             recomputePeaksAndRefresh();
 
         elseif strcmp(keyPressed, 'p')
-            save('movie_inspector_code/peakFinderParams', 'peakFinderParams');
+            save(paths.peak_finder_params, 'peakFinderParams');
             paramsModified = false;
             refresh();
 

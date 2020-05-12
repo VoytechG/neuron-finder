@@ -9,7 +9,7 @@
 %   (check if mouse within window bounds)
 
 function annotations = cellChecker(p, movie, traces, filters, events, ...
-    annotationsPrev, savePath, varargin)
+    annotationsPrev, peakFinderParams, paths)
 
 % set params
 % number of filters
@@ -43,7 +43,7 @@ skipCell = numberOfEvents | tooSmall;
 
 %% Go through each cell
 
-h = figure('units','normalized','outerposition',[0 0 1 1]);
+h = figure('units','normalized','outerposition', [0 0 1 1]);
 finished = false;
 lastDir = 1;
 i = 0;
@@ -204,10 +204,10 @@ while ~finished
             annotations.filters(i) = AnnotationLabel.Contaminated;
             modificationsSaved = false;
             lastDir=1;
-        elseif strcmpi(reply, 'f')  % forward
+        elseif strcmpi(reply, 'f')  || strcmpi(reply, '.') % forward
             currentIdx=currentIdx+1;
             lastDir=1;
-        elseif strcmpi(reply, 'b')  % backward
+        elseif strcmpi(reply, 'b')  || strcmpi(reply, ',') % backward
             currentIdx=currentIdx-1;
             lastDir=-1;
         elseif strcmpi(reply,'q')   % quit
@@ -254,13 +254,13 @@ close(h)
             'Style','text',...
             'FontSize',14,...
             'Position',[100 100 200 200],...
-            'String',{'Annotation Keys','','y = yes','n = no', 'c = maybe', 'd = draw polygon'});
+            'String',{'Annotation Keys','','y = yes','n = no', 's = save'});
         
         txt = uicontrol('Parent',d,...
             'Style','text',...
             'FontSize',14,...
             'Position',[500 100 200 200],...
-            'String',{'Navigation Keys','','f = forward','b = back','m = show event movie','q = quit'});
+            'String',{'Navigation Keys','','f || . = forward','b || , = back','m = show event movie','q = quit'});
         
         btn = uicontrol('Parent',d,...
             'KeyPressFcn','delete(gcf)',...
@@ -439,6 +439,8 @@ close(h)
     end
 
     function saveAnnotations()
+
+        savePath = paths.generateAnnotationsSavePath(peakFinderParams)
         annotations.save(savePath);
         modificationsSaved = true;
 

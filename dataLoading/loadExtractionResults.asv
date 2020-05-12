@@ -49,7 +49,7 @@ annotationsPrev = loadannotations(annotationsPath);
 %% Helper functions
 function annotationsPrev = loadannotations(path)
 
-    if (~checkIfExistsInWorkspace("annotationsLoaded") || annotationsLoaded ~= path)
+    if (~checkIfExistsInWorkspace("annotationsLoaded") && annotationsLoaded == path)
 
         if (~isfile(path))
             fprintf("No annotation results found.\n");

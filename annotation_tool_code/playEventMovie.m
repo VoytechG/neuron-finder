@@ -51,7 +51,9 @@ function playEventMovie(movie, cellIdx, trace, eventTime, centroids, cvxHulls, s
         % had to flip first dim of movie
         ax = subplot(3,2,[1:4]);
         hold on
-        imagesc(flipud(movieCutout(:,:,i)));
+        cropLimits = [-0.045, 0.075];
+
+        imagesc(flipud(movieCutout(:,:,i)), cropLimits);
         colormap(ax,gray)
         set(gca,'CLim',clims)
         set(gca, 'XTick', [], 'YTick', [])
