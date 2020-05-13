@@ -110,7 +110,8 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
             for eventIndex = 1:numberOfEventsInFrame
                 filterIndex = eventsForFrames{dispFrameIndex}{eventIndex};
                 frameDistanceToPeakFrame = dispFrameIndex - frameIndex;
-                filterPatch = drawEventOutlinePatch(filterIndex, frameDistanceToPeakFrame);
+                filterPatch = drawEventOutlinePatch( ...
+                    filterIndex, frameDistanceToPeakFrame, outlines, colors);
 
                 patchIndex = patchIndex + 1;
                 outlinePatches{patchIndex} = filterPatch;
@@ -121,38 +122,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
     end
 
-    function px = drawEventOutlinePatch(filterIndex, frameDistanceToPeakFrame)
-
-        drawText = 0;
-
-        if frameDistanceToPeakFrame == 0
-            color = colors.peakColor;
-            lineWidth = 2;
-        else
-            color = colors.nonPeakColor;
-            lineWidth = 1;
-        end
-
-        xs = outlines{filterIndex}(:, 1);
-        ys = outlines{filterIndex}(:, 2);
-        px = patch('XData', xs, 'YData', ys, ...
-            'EdgeColor', color, 'FaceColor', 'none', 'LineWidth', lineWidth);
-
-        if drawText
-
-            if frameDistanceToPeakFrame > 0
-                frameDistanceToPeakFrameString = sprintf('+%d', frameDistanceToPeakFrame);
-            else
-                frameDistanceToPeakFrameString = sprintf('%d', frameDistanceToPeakFrame);
-            end
-
-            % patchLabel = sprintf('(%s) %d', frameDistanceToPeakFrameString, filterIndex);
-            patchLabel = frameDistanceToPeakFrameString;
-            text('Position', [max(xs) + 2, max(ys) + 2], 'String', patchLabel, ...
-                'Color', color, 'FontSize', 16, 'FontWeight', 'Bold');
-        end
-
-    end
+    
 
     function setTitle()
 
@@ -273,3 +243,5 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
         end
 
     end
+
+
