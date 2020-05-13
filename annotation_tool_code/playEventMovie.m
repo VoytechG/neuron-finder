@@ -72,6 +72,7 @@ function playEventMovie(movie, cellIdx, trace, eventTime, centroids, cvxHulls, s
         subplot(3,2,[5:6])
         hold off
         plot(1:length(traceCutout),traceCutout,'k')
+        xline(eventTime - zLow + 1);
         hold on
         plot(i,traceCutout(i),'or')
         xlabel('Time (s)')
