@@ -1,7 +1,5 @@
 function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = ...
-        getEventMontage(...
-        eventTimes, cellTrace, DFOF, imgCentroid, ...
-        cellImage, cellImageBinary, varargin)
+        getEventMontage(eventTimes, cellTrace, DFOF, imgCentroid, cellImage, varargin)
 
     options.calcEventImageCorrs = 0;
     options.calcPairwise = 0;
@@ -41,6 +39,7 @@ function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = ...
                 imgCell{j}(imgCentroid(2), imgCentroid(1)) = minVal;
             elseif j - 1 <= length(eventTimes)
                 imgCell{j} = single(eventImages(:, :, j - 1));
+                imgCell{j}(imgCentroid(2), imgCentroid(1)) = minVal;
 
                 if options.calcEventImageCorrs
                     C = corrcoef(imgCell{1}(:), imgCell{j}(:));
@@ -59,16 +58,14 @@ function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = ...
 
         end
 
-        imagesRange = 2:length(eventTimes) + 1;
+        for j = 2:length(eventTimes) + 1
+            
+            img  = imgCell{j};
+            [areas, centroids, cvxHulls, cvxAreas, outlines] = ...
+                getFilterProps(cat(3, imgCell{j}));
 
-        for j = imagesRange
-
-            img = imgCell{j};
-            img(cellImageBinary(yLims, xLims) == 0) = 0;
-            [~, centroids, ~, ~, ~, ~] = ...
-                getFilterProps(cat(3, img));
-
-            imgCell{j}(round(centroids(2)), round(centroids(1))) = maxVal;
+            [cx, cy] = centroids(1);
+            imgCell{j}(cx, cy) = minVal;
         end
 
         % wellCentered = {}
@@ -81,13 +78,6 @@ function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = ...
         %     img = imgCell{j}
 
         % end
-
-        % Mark centroids
-        for j = imagesRange
-
-            imgCell{j}(imgCentroid(2), imgCentroid(1)) = minVal;
-
-        end
 
         eventMontage = cell2mat(imgCell);
 

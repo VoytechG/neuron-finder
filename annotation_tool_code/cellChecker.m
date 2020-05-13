@@ -26,9 +26,10 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
     persistent areas;
     persistent centroids;
     persistent outlines;
+    persistent binaryThrsFilters;
 
     if isempty(areas)
-        [areas, centroids, ~, ~, outlines] = getFilterProps(filters);
+        [areas, centroids, ~, ~, outlines, binaryThrsFilters] = getFilterProps(filters);
     end
 
     %% exclude cells that are too small or have no events
@@ -141,7 +142,7 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
                 title('Loading snapshots...')
                 eventMontages{i} = ...
                     getEventMontage(events{i}, traces(i, :), movie, ...
-                    centroids(i, :), filters(:, :, i));
+                    centroids(i, :), filters(:, :, i), binaryThrsFilters(:, :, i));
             end
 
             montage = eventMontages{i};
@@ -207,10 +208,10 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
                 annotations.matchings{i}(:) = AnnotationLabel.Invalid;
                 modificationsSaved = false;
                 lastDir = 1;
-            elseif strcmpi(reply, 'c')% contaminated
-                annotations.filters(i) = AnnotationLabel.Contaminated;
-                modificationsSaved = false;
-                lastDir = 1;
+                % elseif strcmpi(reply, 'c')% contaminated
+                %     annotations.filters(i) = AnnotationLabel.Contaminated;
+                %     modificationsSaved = false;
+                %     lastDir = 1;
             elseif strcmpi(reply, 'f') || strcmpi(reply, '.')% forward
                 currentIdx = currentIdx + 1;
                 lastDir = 1;

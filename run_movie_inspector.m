@@ -1,22 +1,23 @@
+%% search for params file and if not found, create the file
+run("filePaths.m")
+
+try
+    load(paths.peak_finder_params);
+catch E
+    peakFinderParams.stdToSignalRatioMult = 1.5;
+    peakFinderParams.minTimeBtwEvents = 6;
+    peakFinderParams.minPeakProminence = 0.1;
+    save(paths.peak_finder_params, 'peakFinderParams');
+end
+
 %% load data to workspssace if not loaded
 run("loadExtractionResults.m")
 
 %% compute events with custom params
-
-% peakFinderParams = PeakFinderParams();
-% peakFinderParams.stdToSignalRatioMult = p.annotation.numStdsForThresh;
-% peakFinderParams.minTimeBtwEvents = p.annotation.minTimeBtwEvents;
-
-try 
-    load(paths.peak_finder_params);
-catch E
-    peakFinderParams.stdToSignalRatioMult = 1.5;
-    peakFinderParams.minTimeBtwEvents = 4;
-end
-
 eventsForFrameInspector = getPeaks(p, double(traces), ...
     peakFinderParams.stdToSignalRatioMult, ...
-    peakFinderParams.minTimeBtwEvents);
+    peakFinderParams.minTimeBtwEvents, ...
+    peakFinderParams.minPeakProminence);
 
 %% Get spatial fitler properties
 if ~checkIfExistsInWorkspace('areas')
@@ -110,7 +111,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
             for eventIndex = 1:numberOfEventsInFrame
                 filterIndex = eventsForFrames{dispFrameIndex}{eventIndex};
                 frameDistanceToPeakFrame = dispFrameIndex - frameIndex;
-                filterPatch = drawEventOutlinePatch( ...
+                filterPatch = drawEventOutlinePatch(...
                     filterIndex, frameDistanceToPeakFrame, outlines, colors);
 
                 patchIndex = patchIndex + 1;
@@ -121,8 +122,6 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
         end
 
     end
-
-    
 
     function setTitle()
 
@@ -136,6 +135,7 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
         sprintf('Frame %d \n', frameIndex), ...
             sprintf('<A-S> std constant : %.2f', peakFinderParams.stdToSignalRatioMult), ...
             sprintf('<Z-X> min dist btw events : %d', peakFinderParams.minTimeBtwEvents), ...
+            sprintf('<E-R> min peak prominance : %.2f', peakFinderParams.minPeakProminence), ...
             save_msg, ...
             newline
         });
@@ -179,6 +179,18 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
         elseif strcmp(keyPressed, 'x')
             peakFinderParams.minTimeBtwEvents = limitValue(...
                 peakFinderParams.minTimeBtwEvents + 1, 0, 100);
+            paramsModified = true;
+            recomputePeaksAndRefresh();
+
+        elseif strcmp(keyPressed, 'e')
+            peakFinderParams.minPeakProminence = limitValue(...
+                peakFinderParams.minPeakProminence - 0.05, 0, 100);
+            paramsModified = true;
+            recomputePeaksAndRefresh();
+
+        elseif strcmp(keyPressed, 'r')
+            peakFinderParams.minPeakProminence = limitValue(...
+                peakFinderParams.minPeakProminence + 0.05, 0, 100);
             paramsModified = true;
             recomputePeaksAndRefresh();
 
@@ -234,7 +246,8 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
         events = getPeaks(p, double(traces), ...
                 peakFinderParams.stdToSignalRatioMult, ...
-                peakFinderParams.minTimeBtwEvents);
+                peakFinderParams.minTimeBtwEvents, ...
+                peakFinderParams.minPeakProminence);
 
             eventsForFrames = getEventsForFrames(events, movie);
 
@@ -242,6 +255,5 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
         end
 
-    end
-
-
+end
+    
