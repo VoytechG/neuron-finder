@@ -1,4 +1,5 @@
-function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = getEventMontage(eventTimes, cellTrace, DFOF, imgCentroid, cellImage, varargin)
+function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = ...
+    getEventMontage(eventTimes, cellTrace, DFOF, imgCentroid, cellImage, varargin)
 
 options.calcPairwise=0;
 

@@ -1,12 +1,8 @@
-% p - ...
-% movie - the source movie
-% traces - filter responses for each frame
-% filters - 
-% events - matchings of each filter
-
-% TODO 
-% - prevent mouse annotation when mouse outside of the window 
-%   (check if mouse within window bounds)
+% p - parameters used for whole-pipeline calculations
+% movie - 500x500x11998: the source movie
+% filters - 500x500x600: ICA filters
+% traces - 600x11998: ICA filter reponses for each frame
+% events - 1x600 cell: 600 ICAs entries, list of peaks for each 
 
 function annotations = cellChecker(p, movie, traces, filters, events, ...
     annotationsPrev, peakFinderParams, paths)
@@ -16,8 +12,8 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
 nFilters = size(filters,3);
 currentIdx = 1;
 
-persistent eventMontages
-eventMontages = cell(length(events),1);
+persistent eventMontagesCount
+eventMontagesCount = cell(length(events),1);
 
 %% preallocate annotations space
 if (isempty(annotationsPrev))
@@ -135,11 +131,13 @@ while ~finished
         % plot event montage
         subplot(2,4,[3 4 7 8]);
         
-        if isempty(eventMontages{i})
+        if isempty(eventMontagesCount{i})
             title('Loading snapshots...')
-            eventMontages{i} = getEventMontage(events{i}, traces(i,:), movie, centroids(i,:), filters(:,:,i));
+            eventMontagesCount{i} = ...
+                getEventMontage(events{i}, traces(i,:), movie, ... 
+                                centroids(i,:), filters(:,:,i));
         end
-        montage = eventMontages{i};
+        montage = eventMontagesCount{i};
         imagesc(montage)
         title(['Snapshots of ' num2str(length(events{i})) ' events']);
         axis off
@@ -440,7 +438,7 @@ close(h)
 
     function saveAnnotations()
 
-        savePath = paths.generateAnnotationsSavePath(peakFinderParams)
+        savePath = paths.generateAnnotationsSavePath(peakFinderParams);
         annotations.save(savePath);
         modificationsSaved = true;
 
