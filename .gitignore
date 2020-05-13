@@ -1,3 +1,6 @@
 *.mat
 *.h5
 *.hdf5
+*.png
+*.tif
+__pycache__
