@@ -1,4 +1,4 @@
-%% set paths to load/save data
+    %% set paths to load/save data
 run("filePaths.m");
 
 %% Load movie, PCAICA results

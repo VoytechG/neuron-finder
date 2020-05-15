@@ -10,7 +10,7 @@ catch E
     save(paths.peak_finder_params, 'peakFinderParams');
 end
 
-%% load data to workspssace if not loaded
+%% load data to workspace if not loaded
 run("loadExtractionResults.m")
 
 %% compute events with custom params
@@ -255,5 +255,4 @@ function displayEventsOnFrame(movie, eventsForFrames, outlines, ...
 
         end
 
-end
-    
+    end
