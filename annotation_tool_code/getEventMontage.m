@@ -38,7 +38,7 @@ function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = ...
                 imgCell{j} = single(cellImage(yLims, xLims) + 1);
                 imgCell{j} = (imgCell{j} - min(imgCell{j}(:)));
                 imgCell{j} = imgCell{j} / max(imgCell{j}(:)) * max(eventImages(:) - minVal) + minVal;
-                imgCell{j}(imgCentroid(2), imgCentroid(1)) = minVal;
+                imgCell{j}(imgCentroid(2), imgCentroid(1)) = maxVal;
             elseif j - 1 <= length(eventTimes)
                 imgCell{j} = single(eventImages(:, :, j - 1));
 
@@ -85,7 +85,7 @@ function [eventMontage, eventImageCorrs, pairwiseEventImageCorrs] = ...
         % Mark centroids
         for j = imagesRange
 
-            imgCell{j}(imgCentroid(2), imgCentroid(1)) = minVal;
+            imgCell{j}(imgCentroid(2), imgCentroid(1)) = maxVal;
 
         end
 

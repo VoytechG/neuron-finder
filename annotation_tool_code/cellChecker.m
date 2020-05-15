@@ -200,24 +200,36 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
                 playEventMovie(movie, i, traces(i, :), events{i}(eventOrder(eventIdx)), centroids, outlines, skipCell)
             elseif strcmpi(reply, 'y')% valid
                 annotations.filters(i) = AnnotationLabel.Valid;
-                annotations.matchings{i}(:) = AnnotationLabel.Valid;
                 modificationsSaved = false;
-                lastDir = 1;
             elseif strcmpi(reply, 'n')% invalid
                 annotations.filters(i) = AnnotationLabel.Invalid;
+                modificationsSaved = false;
+            elseif strcmpi(reply, 'l')% invalid
                 annotations.matchings{i}(:) = AnnotationLabel.Invalid;
                 modificationsSaved = false;
-                lastDir = 1;
-                % elseif strcmpi(reply, 'c')% contaminated
-                %     annotations.filters(i) = AnnotationLabel.Contaminated;
+            elseif strcmpi(reply, 'k')% invalid
+                annotations.matchings{i}(:) = AnnotationLabel.Valid;
+                modificationsSaved = false;
+                % elseif strcmpi(reply, 'j')% invalid
+                %     columnIndices = getRectangleMarkerIndexUnderCursor(...
+                %         gridA, size(montage), no_events, true);
+                %     columnIndices = eventOrder(columnIndices);
+                %     if annotations.matchings{i}(columnIndices(1)) == AnnotationLabel.Valid
+                %          annotations.matchings{i}(columnIndices) = AnnotationLabel.Invalid;
+                %     else
+                %         annotations.matchings{i}(columnIndices) = AnnotationLabel.Valid;
+                %     end
                 %     modificationsSaved = false;
-                %     lastDir = 1;
             elseif strcmpi(reply, 'f') || strcmpi(reply, '.')% forward
                 currentIdx = currentIdx + 1;
                 lastDir = 1;
+                saveAnnotations();
+
             elseif strcmpi(reply, 'b') || strcmpi(reply, ',')% backward
                 currentIdx = currentIdx - 1;
                 lastDir = -1;
+                % saveAnnotations();
+
             elseif strcmpi(reply, 'q')% quit
                 finished = 1;
                 saveAnnotations();
@@ -322,7 +334,7 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
             markerIndexUnderCursor = getRectangleMarkerIndexUnderCursor(...
                 squareGridLength, imgDim, no_events);
 
-            matchingIndex = markerIndexUnderCursor - 1;
+            matchingIndex = eventOrder(markerIndexUnderCursor - 1);
 
             m = annotations.matchings{i}(matchingIndex);
 
@@ -350,7 +362,9 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
             for j = 1:no_events
 
                 [circle_x, circle_y] = getCircleCoordinates(radius);
-                filterAnnotation = annotations.matchings{i}(j);
+
+                eventIndex = eventOrder(j);
+                filterAnnotation = annotations.matchings{i}(eventIndex);
 
                 selectionColor = filterAnnotation.color;
                 rectangleMarkerIndexOfEvent = j + 1;
@@ -369,7 +383,7 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
                     'YData', posY + circle_y, ...
                     'EdgeColor', 'black', ...
                     'FaceColor', selectionColor, ...
-                    'LineWidth', 1.5);
+                    'LineWidth', 1);
 
                 selectionPatches{rectangleMarkerIndexOfEvent} = newSelectionPatch;
             end
@@ -392,26 +406,6 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
             r = radius;
             X = r * cos(t);
             Y = r * sin(t);
-        end
-
-        function markerIndexUnderCursor = ...
-                getRectangleMarkerIndexUnderCursor(squareGridLength, imgDim, no_events)
-
-            [mouseX, mouseY] = getMouseXYInGca();
-
-            imgHeight = imgDim(1);
-            imgWidth = imgDim(2);
-
-            mouseX_rel = limitValue(mouseX, 0, imgWidth) / imgWidth;
-            mouseY_rel = limitValue(mouseY, 0, imgHeight) / imgHeight;
-
-            grid_x = min(floor(mouseX_rel * squareGridLength), squareGridLength - 1);
-            grid_y = min(floor(mouseY_rel * squareGridLength), squareGridLength - 1);
-
-            numberOfImageTilesDisplayed = no_events + 1;
-            markerIndexUnderCursor = squareGridLength * grid_x + grid_y + 1;
-            markerIndexUnderCursor = ...
-                limitValue(markerIndexUnderCursor, 2, numberOfImageTilesDisplayed);
         end
 
         function [selectionBoxX, selectionBoxY] = ...
@@ -448,6 +442,41 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
         savePath = paths.generateAnnotationsSavePath(peakFinderParams);
         annotations.save(savePath);
         modificationsSaved = true;
+
+    end
+
+    function markerIndexUnderCursor = ...
+            getRectangleMarkerIndexUnderCursor(squareGridLength, imgDim, no_events, wholeColumn)
+
+        if nargin == 3
+            wholeColumn = false;
+        end
+
+        [mouseX, mouseY] = getMouseXYInGca();
+
+        imgHeight = imgDim(1);
+        imgWidth = imgDim(2);
+
+        mouseX_rel = limitValue(mouseX, 0, imgWidth) / imgWidth;
+        mouseY_rel = limitValue(mouseY, 0, imgHeight) / imgHeight;
+
+        grid_x = min(floor(mouseX_rel * squareGridLength), squareGridLength - 1);
+        grid_y = min(floor(mouseY_rel * squareGridLength), squareGridLength - 1);
+
+        numberOfImageTilesDisplayed = no_events + 1;
+        markerIndexUnderCursor = squareGridLength * grid_x + grid_y + 1;
+        markerIndexUnderCursor = ...
+            limitValue(markerIndexUnderCursor, 2, numberOfImageTilesDisplayed);
+
+        if wholeColumn
+
+            p = squareGridLength * grid_x + 1;
+            p = limitValue(p, 2, numberOfImageTilesDisplayed);
+            q = squareGridLength * (grid_x + 1);
+            q = limitValue(q, 2, numberOfImageTilesDisplayed);
+            markerIndexUnderCursor = p:q;
+
+        end
 
     end
 

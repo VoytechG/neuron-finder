@@ -5,10 +5,11 @@ paths.peak_finder_params = 'movie_inspector_code/peakFinderParams.mat';
 paths.generateAnnotationsSavePath = @generateAnnotationsSavePath;
 
 function fullpath = generateAnnotationsSavePath(peakFinderParams)
-  annotationsDir = 'sorted/';
-  filename = sprintf('annotations_%f_%d.mat', ... 
-    peakFinderParams.stdToSignalRatioMult, ...
-    peakFinderParams.minTimeBtwEvents);
+    annotationsDir = 'sorted/';
+    filename = sprintf('annotations_%.2f_%d_%.2f.mat', ...
+        peakFinderParams.stdToSignalRatioMult, ...
+        peakFinderParams.minTimeBtwEvents, ...
+        peakFinderParams.minPeakProminence);
 
-  fullpath = strcat(annotationsDir, filename);
+    fullpath = strcat(annotationsDir, filename);
 end
