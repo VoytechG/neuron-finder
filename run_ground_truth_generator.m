@@ -1,3 +1,6 @@
+%% Choose how many first frames to generate
+framesToGenerate = 100;
+
 %% load data to workspace if not loaded
 run("loadExtractionResults.m")
 
@@ -8,8 +11,6 @@ if ~checkIfExistsInWorkspace('areas')
     [areas, centroids, cvxHulls, cvxAreas, outlines, filtersBinary] = ...
         getFilterProps(filters);
 end
-
-framesToGenerate = 100;
 
 no_filters = size(filters, 3);
 no_frames = size(movie, 3);
@@ -45,4 +46,4 @@ for i = 1:no_filters
 
 end
 
-save(paths.generateGroundTruthSavePath(peakFinderParams), 'groundTruth');
+save(paths.generateGroundTruthSavePath(peakFinderParams, framesToGenerate), 'groundTruth');

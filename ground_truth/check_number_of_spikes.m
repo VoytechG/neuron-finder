@@ -1,4 +1,3 @@
-
 run("loadExtractionResults.m")
 
 annotations = annotationsPrev;

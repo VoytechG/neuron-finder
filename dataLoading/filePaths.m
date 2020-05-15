@@ -15,12 +15,13 @@ function fullpath = generateAnnotationsSavePath(peakFinderParams)
     fullpath = strcat(annotationsDir, filename);
 end
 
-function fullpath = generateGroundTruthSavePath(peakFinderParams)
+function fullpath = generateGroundTruthSavePath(peakFinderParams, generatedFrames)
     annotationsDir = 'ground_truth/';
-    filename = sprintf('ground_truth_%.2f_%d_%.2f.mat', ...
+    filename = sprintf('ground_truth_%.2f_%d_%.2f_frames_%d.mat', ...
         peakFinderParams.stdToSignalRatioMult, ...
         peakFinderParams.minTimeBtwEvents, ...
-        peakFinderParams.minPeakProminence);
+        peakFinderParams.minPeakProminence, ...
+        generatedFrames);
 
     fullpath = strcat(annotationsDir, filename);
 end
