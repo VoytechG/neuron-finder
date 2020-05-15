@@ -20,7 +20,7 @@ events_in_frame = cell(1, no_frames);
 frameHeight = size(movie, 1);
 frameWidth = size(movie, 2);
 
-groundTruth = zeros(frameHeight, frameWidth, framesToGenerate);
+groundTruth = false(frameHeight, frameWidth, framesToGenerate);
 
 for i = 1:no_filters
 
