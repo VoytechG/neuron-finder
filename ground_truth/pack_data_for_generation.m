@@ -7,9 +7,12 @@ if ~checkIfExistsInWorkspace('areas')
         getFilterProps(filters);
 end
 
-validEvents = cell(1, no_filters);
-
+no_frames = size(movie, 3);
 no_filters = size(filters, 3);
+
+eventsForFilters = cell(1, no_filters);
+eventsInFrames = cell(1, no_frames);
+filterCentroids = centroids;
 
 for i = 1:no_filters
 
@@ -21,15 +24,18 @@ for i = 1:no_filters
 
             if matchings(j) == AnnotationLabel.Valid
                 matchingFrame = events{i}(j);
-                validEvents{i}(end + 1) = matchingFrame;
+                eventsForFilters{i}(end + 1) = matchingFrame;
+                eventsInFrames{matchingFrame}(end + 1) = i;
             end
 
         end
 
     end
 
+    filterCentroids(i, 1) = round(filterCentroids(i, 1));
+    filterCentroids(i, 2) = round(filterCentroids(i, 2));
 end
 
 filtersBinary = logical(filtersBinary);
 
-save dataPackedForGeneration.mat filtersBinary validEvents
+save dataPackedForGeneration.mat filtersBinary eventsInFrames eventsForFilters filterCentroids

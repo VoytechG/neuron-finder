@@ -16,13 +16,15 @@ function displayMovieAndGT(movie, groundTruth, frameIndex)
         % Top plot
         nexttile([2 1])
         cropLimits = [-0.045, 0.075];
-        imagesc(movie(:, :, frameIndex), cropLimits);
+        I = imresize(movie(:, :, frameIndex), 0.5);
+        imagesc(I, cropLimits);
 
         % Bottom plot
         nexttile([2 1])
         imageOverlay = movie(:, :, frameIndex) + ...
             groundTruth(:, :, frameIndex) * cropLimits(2);
-        imagesc(imageOverlay, cropLimits);
+        I = imresize(imageOverlay, 0.5);
+        imagesc(I, cropLimits);
 
         set(gcf, 'KeyPressFcn', @onKeyPress);
     end
