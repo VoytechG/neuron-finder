@@ -3,4 +3,5 @@
 *.hdf5
 *.png
 *.tif
+*.jpg
 __pycache__
