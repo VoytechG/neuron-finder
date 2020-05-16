@@ -8,11 +8,8 @@ FRAME_H = 500
 FRAME_W = 500
 FRAME_SHAPE = (FRAME_H, FRAME_W)
 
-DATA_PACKED_FOR_GT_GENERATION_PATH = "../dataPackedForGeneration.mat"
-MOVIE_PATH = "../preprocessed/preprocessedMovie.h5"
 
-
-def load_ground_truth_generation_data(path=DATA_PACKED_FOR_GT_GENERATION_PATH):
+def load_ground_truth_generation_data(path):
 
     """
     filters_binary 
@@ -60,7 +57,7 @@ def load_ground_truth_generation_data(path=DATA_PACKED_FOR_GT_GENERATION_PATH):
     return [filters_binary, events_for_filters, filter_centroids, events_in_frames]
 
 
-def load_movie(path=MOVIE_PATH):
+def load_movie(path):
     f = h5py.File(path, "r")
     movie = f["/1"]
     return movie

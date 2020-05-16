@@ -14,14 +14,20 @@ from tensorflow.keras.utils import Sequence
 
 
 class DataGenerator:
-    def __init__(self, spatial_dim=(256, 256), temporal_dim=8):
-        self.movie = load_movie()
+    def __init__(
+        self,
+        movie,
+        ground_truth_generation_data,
+        spatial_dim=(256, 256),
+        temporal_dim=8,
+    ):
+        self.movie = movie
         [
             filters_binary,
             events_for_filters,
             filter_centroids,
             events_in_frames,
-        ] = load_ground_truth_generation_data()
+        ] = ground_truth_generation_data
         self.filters_binary = filters_binary
         self.events_for_filters = events_for_filters
         self.filter_centroids = filter_centroids
@@ -98,6 +104,8 @@ class DataSequencer(Sequence):
     def __init__(
         self,
         indices,
+        movie,
+        ground_truth_generation_data,
         batch_size=32,
         spatial_dim=(256, 256),
         temporal_dim=8,
@@ -108,7 +116,12 @@ class DataSequencer(Sequence):
         self.spatial_dim = spatial_dim
         self.shuffle = shuffle
         self.on_epoch_end()
-        self.gen = DataGenerator(spatial_dim=spatial_dim, temporal_dim=temporal_dim)
+        self.gen = DataGenerator(
+            movie,
+            ground_truth_generation_data,
+            spatial_dim=spatial_dim,
+            temporal_dim=temporal_dim,
+        )
 
     def __len__(self):
         return len(self.indices) // self.batch_size
