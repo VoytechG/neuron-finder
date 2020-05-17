@@ -133,6 +133,7 @@ class DataSequencer(Sequence):
         positive_label_weight=100,
         sample_weight_function=None,
         shuffle=True,
+        use_sample_weights=True,
     ):
         self.indices = indices
         self.batch_size = batch_size
@@ -149,6 +150,7 @@ class DataSequencer(Sequence):
             positive_label_weight=positive_label_weight,
             sample_weight_function=sample_weight_function,
         )
+        self.use_sample_weights = use_sample_weights
 
     def __len__(self):
         return len(self.indices) // self.batch_size
@@ -157,9 +159,7 @@ class DataSequencer(Sequence):
 
         indices = self.indices[index * self.batch_size : (index + 1) * self.batch_size]
 
-        batch_X, batch_y, batch_sample_weights = self.__data_generation(indices)
-
-        return batch_X, batch_y, batch_sample_weights
+        return self.__data_generation(indices)
 
     def on_epoch_end(self):
         if self.shuffle == True:
@@ -175,11 +175,13 @@ class DataSequencer(Sequence):
             [self.gen.get_sample_weight(i) for i in indices]
         )
 
+        if not self.use_sample_weights:
+            return batch_X, batch_y
+
         return batch_X, batch_y, batch_sample_weights
 
     def get_all_data(self):
-        all_X, all_y = self.__data_generation(self.indices)
-        return (all_X, all_y)
+        return self.__data_generation(self.indices)
 
     def data_generator(self):
         i = 0

@@ -7,13 +7,19 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 
-def build_down_step(entry, filters_no, dropout=None):
+def conv_bnorm_relu(input, filters_no, kernel=3, padding="same"):
     conv = layers.Conv3D(
-        filters_no, 3, activation="relu", padding="same", kernel_initializer="he_normal"
-    )(entry)
-    conv = layers.Conv3D(
-        filters_no, 3, activation="relu", padding="same", kernel_initializer="he_normal"
-    )(conv)
+        filters_no, kernel, padding=padding, kernel_initializer="he_normal"
+    )(input)
+    norm = layers.BatchNormalization()(conv)
+    relu = layers.Activation("relu")(norm)
+
+    return relu
+
+
+def build_down_step(input, filters_no, dropout=None):
+    conv = conv_bnorm_relu(input, filters_no)
+    conv = conv_bnorm_relu(conv, filters_no)
 
     to_pool = conv
     if dropout:
@@ -24,51 +30,36 @@ def build_down_step(entry, filters_no, dropout=None):
     return conv, pool
 
 
-def build_bottom_step(entry, filters_no):
-    conv_bottom = layers.Conv3D(
-        filters_no, 3, activation="relu", padding="same", kernel_initializer="he_normal"
-    )(entry)
-    conv_bottom = layers.Conv3D(
-        filters_no, 3, activation="relu", padding="same", kernel_initializer="he_normal"
-    )(conv_bottom)
-    conv_bottom = layers.Dropout(0.5)(conv_bottom)
+def build_bottom_step(input, filters_no):
 
-    return conv_bottom
+    conv = conv_bnorm_relu(input, filters_no)
+    conv = conv_bnorm_relu(conv, filters_no)
+    conv = layers.Dropout(0.5)(conv)
+
+    return conv
 
 
-def build_up_step(entry, conv_link, filters_no):
+def build_up_step(input, conv_link, filters_no):
 
-    up = layers.Conv3D(
-        filters_no, 2, activation="relu", padding="same", kernel_initializer="he_normal"
-    )(layers.UpSampling3D(size=(2, 2, 2))(entry))
+    upsample = layers.UpSampling3D(size=(2, 2, 2))(input)
+    up = conv_bnorm_relu(upsample, filters_no)
     merge = layers.concatenate([conv_link, up], axis=4)
-    convup = layers.Conv3D(
-        filters_no, 3, activation="relu", padding="same", kernel_initializer="he_normal"
-    )(merge)
-    convup = layers.Conv3D(
-        filters_no, 3, activation="relu", padding="same", kernel_initializer="he_normal"
-    )(convup)
 
-    return convup
+    conv = conv_bnorm_relu(merge, filters_no)
+    conv = conv_bnorm_relu(conv, filters_no)
+
+    return conv
 
 
-def build_output_step(entry, input_size):
+def build_output_step(input, input_size):
     frames, height, width, _ = input_size
-    convout = layers.Conv3D(
-        2, (1, 3, 3), activation="relu", padding="same", kernel_initializer="he_normal"
-    )(entry)
-    convout = layers.Conv3D(
-        2,
-        (frames, 1, 1),
-        activation="relu",
-        padding="valid",
-        kernel_initializer="he_normal",
-    )(convout)
-    convout = layers.Reshape((height, width, 2))(convout)
-    return convout
+    conv = conv_bnorm_relu(input, 2, kernel=(1, 1, 1))
+    conv = conv_bnorm_relu(conv, 2, kernel=(frames, 1, 1), padding="valid")
+    conv = layers.Reshape((height, width, 2))(conv)
+    return conv
 
 
-def unet3d_simply(input_size, start_filters_no=32):
+def unet3d_in_out(input_size, start_filters_no=32):
     def fil(depth):
         return start_filters_no * 2 ** (depth - 1)
 
@@ -86,7 +77,13 @@ def unet3d_simply(input_size, start_filters_no=32):
 
     convout = build_output_step(convup1, input_size)
 
-    model = keras.Model(inputs=inputs, outputs=convout)
+    return inputs, convout
+
+
+def unet3d_simply(input_size, start_filters_no=32):
+    inputs, outputs = unet3d_in_out(input_size, start_filters_no=start_filters_no)
+
+    model = keras.Model(inputs=inputs, outputs=outputs)
 
     model.compile(
         optimizer=keras.optimizers.Adam(lr=1e-4),
