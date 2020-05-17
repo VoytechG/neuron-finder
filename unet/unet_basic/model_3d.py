@@ -54,7 +54,14 @@ def build_up_step(input, conv_link, filters_no):
 def build_output_step(input, input_size):
     frames, height, width, _ = input_size
     conv = conv_bnorm_relu(input, 2, kernel=(1, 1, 1))
-    conv = conv_bnorm_relu(conv, 2, kernel=(frames, 1, 1), padding="valid")
+    # conv = conv_bnorm_relu(conv, 2, kernel=(frames, 1, 1), padding="valid")
+    conv = layers.Conv3D(
+        2,
+        (frames, 1, 1),
+        padding="valid",
+        kernel_initializer="he_normal",
+        name="last_linear",
+    )(conv)
     conv = layers.Reshape((height, width, 2))(conv)
     return conv
 
