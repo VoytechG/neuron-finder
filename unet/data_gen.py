@@ -20,6 +20,8 @@ class DataGenerator:
         ground_truth_generation_data,
         spatial_dim=(256, 256),
         temporal_dim=8,
+        positive_label_weight=100,
+        sample_weight_function=None,
     ):
         self.movie = movie
         [
@@ -34,6 +36,8 @@ class DataGenerator:
         self.events_in_frames = events_in_frames
         self.spatial_dim = spatial_dim
         self.temporal_dim = temporal_dim
+        self.positive_label_weight = positive_label_weight
+        self.sample_weight_function = sample_weight_function
 
     def get_frame(self, index):
         frame_tranposed = self.movie[index]
@@ -65,18 +69,7 @@ class DataGenerator:
 
         return y
 
-    def get_x(self, frame_index):
-        """
-
-        Arguments:
-            frame_index {int} 
-
-        Keyword Arguments:
-            temporal_dim {int} -- (default: {8})
-
-        Returns:
-            4D tensor -- temporal_dim x 500 x 500 x 1
-        """
+    def get_x_range(self, frame_index):
         temporal_dim = self.temporal_dim
         p = frame_index - temporal_dim // 2 + 1
         q = frame_index + temporal_dim // 2
@@ -87,7 +80,23 @@ class DataGenerator:
         p = max(0, p)
         q = min(q, MOVIE_LEN - 1)
 
-        frames_raw = self.movie[p : q + 1]
+        return list(range(p, q + 1))
+
+    def get_x(self, frame_index):
+        """
+
+        Arguments:
+            frame_index {int} 
+
+        Keyword Arguments:
+            temporal_dim {int} -- (default: {8})
+
+        Returns:
+            4D tensor -- temporal_dim x spatial_dim x spatial_dim x 1
+        """
+        indices_range = self.get_x_range(frame_index)
+
+        frames_raw = self.movie[indices_range]
 
         if self.spatial_dim:
             frames_raw = [
@@ -99,6 +108,18 @@ class DataGenerator:
 
         return x
 
+    def get_sample_weight(self, frame_index):
+        indices_range = self.get_x_range(frame_index)
+        ys = [self.get_y(i) for i in indices_range]
+        if self.sample_weight_function is not None:
+            sample_weight_y = self.sample_weight_function(ys)
+        else:
+            sample_weight_y = sum(ys)
+            sample_weight_y = np.minimum(sample_weight_y, np.ones_like(sample_weight_y))
+            sample_weight_y = sample_weight_y * (self.positive_label_weight - 1) + 1
+
+        return sample_weight_y
+
 
 class DataSequencer(Sequence):
     def __init__(
@@ -109,11 +130,15 @@ class DataSequencer(Sequence):
         batch_size=32,
         spatial_dim=(256, 256),
         temporal_dim=8,
+        positive_label_weight=100,
+        sample_weight_function=None,
         shuffle=True,
     ):
         self.indices = indices
         self.batch_size = batch_size
         self.spatial_dim = spatial_dim
+        self.positive_label_weight = positive_label_weight
+        self.sample_weight_function = sample_weight_function
         self.shuffle = shuffle
         self.on_epoch_end()
         self.gen = DataGenerator(
@@ -121,6 +146,8 @@ class DataSequencer(Sequence):
             ground_truth_generation_data,
             spatial_dim=spatial_dim,
             temporal_dim=temporal_dim,
+            positive_label_weight=positive_label_weight,
+            sample_weight_function=sample_weight_function,
         )
 
     def __len__(self):
@@ -130,9 +157,9 @@ class DataSequencer(Sequence):
 
         indices = self.indices[index * self.batch_size : (index + 1) * self.batch_size]
 
-        batch_X, batch_y = self.__data_generation(indices)
+        batch_X, batch_y, batch_sample_weights = self.__data_generation(indices)
 
-        return batch_X, batch_y
+        return batch_X, batch_y, batch_sample_weights
 
     def on_epoch_end(self):
         if self.shuffle == True:
@@ -144,7 +171,11 @@ class DataSequencer(Sequence):
 
         batch_y = np.array([self.gen.get_y(i) for i in indices])
 
-        return batch_X, batch_y
+        batch_sample_weights = np.array(
+            [self.gen.get_sample_weight(i) for i in indices]
+        )
+
+        return batch_X, batch_y, batch_sample_weights
 
     def get_all_data(self):
         all_X, all_y = self.__data_generation(self.indices)

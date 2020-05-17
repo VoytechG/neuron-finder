@@ -1,6 +1,5 @@
     %% set paths to load/save data
     run("filePaths.m");
-
     %% Load movie, PCAICA results
 
     if (~checkIfExistsInWorkspace("movieLoaded"))
@@ -45,7 +44,7 @@
         generatedAnnotationsPath = paths.generateAnnotationsSavePath(peakFinderParams);
 
         if ~checkIfExistsInWorkspace("annotationsPath") ||~strcmp(annotationsPath, generatedAnnotationsPath)
-            annotationsPath = generateAnnotationsSavePath;
+            annotationsPath = generatedAnnotationsPath;
             annotationsPrev = loadannotations(annotationsPath);
         end
 
