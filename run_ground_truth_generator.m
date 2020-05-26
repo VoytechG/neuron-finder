@@ -1,5 +1,5 @@
 %% Choose how many first frames to generate
-framesToGenerate = 100;
+framesToGenerate = 1000;
 
 %% load data to workspace if not loaded
 run("loadExtractionResults.m")

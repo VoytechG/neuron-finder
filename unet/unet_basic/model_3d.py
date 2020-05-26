@@ -6,6 +6,7 @@ import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
 
+# Ack
 
 def conv_bnorm_relu(input, filters_no, kernel=3, padding="same"):
     conv = layers.Conv3D(
@@ -15,7 +16,6 @@ def conv_bnorm_relu(input, filters_no, kernel=3, padding="same"):
     relu = layers.Activation("relu")(norm)
 
     return relu
-
 
 def build_down_step(input, filters_no, dropout=None, double_second=False):
     conv = conv_bnorm_relu(input, filters_no)
@@ -63,7 +63,6 @@ def build_output_step(input, input_size, cat_ce=True):
             kernel_initializer="he_normal",
             name="last_linear",
         )(conv)
-        conv = layers.Reshape((height, width, 2))(conv)
 
     else:
         conv = layers.Conv3D(
@@ -272,21 +271,8 @@ def unet3d(
         padding="valid",
         kernel_initializer="he_normal",
     )(convout)
-    convout = layers.Reshape((height, width, 1))(convout)
+    convout = layers.Reshape((height, width, 1))(convout)-
 
-    # ----------------------- binary cross entropy ----------------------------
-    # if not categorical_cross_entropy:
-
-    #     convout = layers.Conv3D(1, 1, activation='sigmoid')(convup1)
-
-    #     model = keras.Model(inputs=inputs, outputs=convout)
-
-    #     model.compile(optimizer=keras.optimizers.Adam(lr=1e-4),
-    #                   loss='binary_crossentropy', metrics=['accuracy'])
-    # ----------------------- binary cross entropy ----------------------------
-
-    # --------------------- categorical crossentropy --------------------------
-    # else:
     model = keras.Model(inputs=inputs, outputs=convout)
 
     model.compile(
@@ -294,7 +280,6 @@ def unet3d(
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
-    # --------------------- categorical crossentropy --------------------------
 
     if pretrained_weights:
         model.load_weights(pretrained_weights)

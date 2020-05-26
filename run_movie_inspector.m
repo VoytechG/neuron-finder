@@ -26,7 +26,7 @@ if ~checkIfExistsInWorkspace('areas')
 end
 
 %% Display frame veiwer
-initialFrame = 1;
+initialFrame = 234;
 eventsForFrames = getEventsForFrames(eventsForFrameInspector, movie);
 
 % crop limits set at the mean min and max brightness values

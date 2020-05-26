@@ -3,7 +3,7 @@ q = 200;
 
 prctile_p = 1;
 prctile_q = 99;
-
+M = movie;
 [mins, maxs, avgs] = getStats(M, p, q);
 sds = getSDS(M, avgs, p, q);
 prctiles_low = getPrctiles(M, p, q, prctile_p);

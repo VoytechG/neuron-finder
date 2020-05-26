@@ -7,7 +7,7 @@ colors.nonPeakColor = Color.red;
 drawAllOutlines(cropLimits, colors, movie, filters, outlines);
 
 function drawAllOutlines(cropLimits, colors, movie, filters, outlines)
-    imagesc(movie(:, :, 1), cropLimits);
+    imagesc(zeros(size(movie(:, :, 1))), cropLimits);
 
     outlinePatches = {};
 
@@ -16,7 +16,7 @@ function drawAllOutlines(cropLimits, colors, movie, filters, outlines)
             drawEventOutlinePatch(i, 0, outlines, colors);
     end
 
-    set(gcf, 'WindowButtonMotionFcn', @onMouseMove);
+%     set(gcf, 'WindowButtonMotionFcn', @onMouseMove);
 
     function onMouseMove(~, ~)
 
@@ -45,7 +45,7 @@ function drawAllOutlines(cropLimits, colors, movie, filters, outlines)
                 px.LineWidth = 3;
             else
                 px.EdgeColor = 'black';
-                px.LineWidth = 1;
+                px.LineWidth = 0.5;
                 %     body
             end
 

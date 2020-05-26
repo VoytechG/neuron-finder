@@ -11,8 +11,9 @@ p.annotation.minTimeBtwEvents = 10;
 %% run cellChecker
 % (this might take some time to load)
 fprintf("Running cell checker. \n");
-startIndex = 1;
+startIndex = 598;
 annotations = cellChecker(...
     p, movie, traces, filters, events, ...
     annotationsPrev, peakFinderParams, paths, startIndex);
 fprintf("Done.\nCell checker exited.\n");
+q

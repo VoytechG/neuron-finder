@@ -2,7 +2,7 @@ function playEventMovie(movie, cellIdx, trace, eventTime, centroids, cvxHulls, s
 
     % set display params
     windowSpace = 20;
-    windowTime = 30;
+    windowTime = 20;
     waitTime = 1 / (windowTime);
     thisCentroid = centroids(cellIdx, :);
     thisHull = cvxHulls{cellIdx};
@@ -53,7 +53,7 @@ function playEventMovie(movie, cellIdx, trace, eventTime, centroids, cvxHulls, s
         hold on
         cropLimits = [-0.045, 0.075];
 
-        imagesc(flipud(movieCutout(:, :, i)), cropLimits);
+        imagesc(flipud(movieCutout(:, :, i)));
         colormap(ax, gray)
         set(gca, 'CLim', clims)
         set(gca, 'XTick', [], 'YTick', [])

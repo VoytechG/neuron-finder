@@ -1,5 +1,5 @@
 run("loadExtractionResults.m")
-framesToGenerate = 100;
+framesToGenerate = 1000;
 load(paths.peak_finder_params, 'peakFinderParams');
 load(paths.generateGroundTruthSavePath(peakFinderParams, framesToGenerate), 'groundTruth');
 

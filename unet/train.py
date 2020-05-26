@@ -8,7 +8,6 @@ from load_data import MOVIE_LEN, FRAME_SHAPE
 from data_gen import DataGenerator
 from unet_basic.model_3d import unet3d_simply
 
-
 FRAME_NEW_SHAPE = (256, 256)
 
 model = unet3d_simply(input_size=(8, 256, 256, 1))

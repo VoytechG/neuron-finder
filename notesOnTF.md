@@ -6,16 +6,14 @@ Eager execution provides an imperative interface to TensorFlow. With eager execu
 
 https://docs.w3cub.com/tensorflow~python/tf/enable_eager_execution/
 
-
 ### A guide to convolutional arithmetic in deep learning
-https://arxiv.org/pdf/1603.07285v1.pdf  
+
+https://arxiv.org/pdf/1603.07285v1.pdf
 
 ### Deconvolutional layer
+
 https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2DTranspose
 
-
 ### Deconvolutinal network
+
 https://www.matthewzeiler.com/mattzeiler/deconvolutionalnetworks.pdf
-
-
-

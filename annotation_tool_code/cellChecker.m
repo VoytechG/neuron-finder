@@ -7,6 +7,8 @@
 function annotations = cellChecker(p, movie, traces, filters, events, ...
         annotationsPrev, peakFinderParams, paths, startIndex)
 
+    cropLimits = [-0.045, 0.075];
+
     % set params
     % number of filters
     nFilters = size(filters, 3);
@@ -69,7 +71,7 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
             %plot filter
             figure(h)
             subplot(2, 4, 1);
-            imagesc(filter);
+            imagesc(filter, cropLimits);
             xlim([1, size(filters, 2)])
             ylim([1, size(filters, 1)])
             axis off
@@ -146,7 +148,7 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
             end
 
             montage = eventMontages{i};
-            imagesc(montage)
+            imagesc(montage, cropLimits);
             title(['Snapshots of ' num2str(length(events{i})) ' events']);
             axis off
 
@@ -223,7 +225,7 @@ function annotations = cellChecker(p, movie, traces, filters, events, ...
             elseif strcmpi(reply, 'f') || strcmpi(reply, '.')% forward
                 currentIdx = currentIdx + 1;
                 lastDir = 1;
-                saveAnnotations();
+                % saveAnnotations();
 
             elseif strcmpi(reply, 'b') || strcmpi(reply, ',')% backward
                 currentIdx = currentIdx - 1;
