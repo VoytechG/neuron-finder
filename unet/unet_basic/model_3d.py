@@ -6,9 +6,27 @@ import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
 
-# Ack
 
 def conv_bnorm_relu(input, filters_no, kernel=3, padding="same"):
+    """[summary]
+
+    Args:
+        input: input value passed to layers.Conv3D
+
+        filters_no (int): 
+            number of convolutional filters to apply in the convolutional layer.
+        kernel (int | tuple, optional): 
+            Size of the 3D kernel. Value passed to layers.Conv3D
+            Defaults to 3, representing 3x3x3.
+        padding (str, optional): 
+            Padding value passed to layers.Conv3D. 
+            Defaults to "same". 
+
+    Returns:
+        relu: 
+            output of the relu layer
+    """
+
     conv = layers.Conv3D(
         filters_no, kernel, padding=padding, kernel_initializer="he_normal"
     )(input)
@@ -17,7 +35,34 @@ def conv_bnorm_relu(input, filters_no, kernel=3, padding="same"):
 
     return relu
 
-def build_down_step(input, filters_no, dropout=None, double_second=False):
+
+def build_down_step(input, filters_no, dropout=False, double_second=False):
+    """Builds on level of the contraction path. 2 conv-bnorm-relu* layers, 
+    optional dropout layer, and a maxpooling layer.
+
+    *conv-bnorm-relu layer: conv. layer with added batch normalization and relu, 
+    please see conv_bnorm_relu() function.
+
+    Args:
+        input: input value passed to layers.Conv3D
+        filters_no (int): number of convolutional filters in this level's 
+            convolutional layers.
+        dropout (bool, optional): 
+            Whether to apply dropout. 
+            Defaults to False.
+        double_second (bool, optional): 
+            Whether to double the number of convolutional filters in the second
+            conv. layer. 
+            Defaults to False.
+
+    Returns:
+        conv: 
+            output of the conv layers to be used for the corresponding level 
+            in the synthesis path
+        pool: 
+            output of the max pooling to be used in the following contraction 
+            path level
+    """
     conv = conv_bnorm_relu(input, filters_no)
     conv = conv_bnorm_relu(conv, filters_no if not double_second else filters_no * 2)
 
@@ -31,6 +76,24 @@ def build_down_step(input, filters_no, dropout=None, double_second=False):
 
 
 def build_bottom_step(input, filters_no, double_second=False):
+    """Builds the bottom level of the unet. 2 conv-bnorm-relu* layers, 
+    and a dropout layer.
+
+    *conv-bnorm-relu layer: conv. layer with added batch normalization and relu, 
+    please see conv_bnorm_relu() function.
+
+    Args:
+        input: input value passed to layers.Conv3D
+        filters_no (int): number of convolutional filters in this level's 
+            convolutional layers.
+        double_second (bool, optional): 
+            Whether to double the number of convolutional filters in the second
+            conv. layer. 
+            Defaults to False.
+    Returns:
+        conv: 
+            output of the conv layers 
+    """
 
     conv = conv_bnorm_relu(input, filters_no)
     conv = conv_bnorm_relu(conv, filters_no if not double_second else filters_no * 2)
@@ -40,6 +103,25 @@ def build_bottom_step(input, filters_no, double_second=False):
 
 
 def build_up_step(input, conv_link, filters_no):
+    """Builds a level of the synthesis path of the unet. 
+    UpSampling layer, conv_bnorm_relu leyer, concatenate layer. Followed by 
+    2 conv_bnorm_relu layers.
+
+    *conv-bnorm-relu layer: conv. layer with added batch normalization and relu, 
+    please see conv_bnorm_relu() function.
+
+    Args:
+        input: input value passed to layers.UpSampling3D
+        conv_link: 
+            output of the convolutinoal layer on the corresponding level 
+            of the contraction path
+        filters_no (int): number of convolutional filters in this level's 
+            convolutional layers.
+
+    Returns:
+        conv: 
+            output of the conv layers 
+    """
 
     upsample = layers.UpSampling3D(size=(2, 2, 2))(input)
     up = conv_bnorm_relu(upsample, filters_no)
@@ -52,6 +134,22 @@ def build_up_step(input, conv_link, filters_no):
 
 
 def build_output_step(input, input_size, cat_ce=True):
+    """Builds the output layers of the u-net. Flattens the input to one frame 
+    volume.
+
+    Args:
+       input: input value passed to layers.Conv3D
+        input_size ([type]): [description]
+        cat_ce (bool, optional): 
+            Whether to apply categorical cross entropy is going to be applied. 
+            If False, sigmoid activation is applied in the output layer.
+            Defaults to True.
+
+    Returns:
+        conv: 
+            output of the conv layers 
+    """
+
     frames, height, width, _ = input_size
     conv = conv_bnorm_relu(input, 2, kernel=(1, 1, 1))
 
@@ -79,7 +177,48 @@ def build_output_step(input, input_size, cat_ce=True):
 
 
 def unet3d_in_out(input_size, start_filters_no=32, double_second=False, cat_ce=True):
+    """
+    Constructs the 3D U-Net architecture
+
+    Args:
+        input_size: Input size passed to keras.layers.Input()
+
+        start_filters_no (int, optional): Number of convolutional filters in 
+            the first layer of the model. With each level the number of conv.
+            filters doubles. E.g. for value 32 the number of layers  will be:
+                
+            32 - 32 ----------------------------------------------- 32 - 32 
+                 '- 64 - 64 ------------------------------- 64 - 64 -'
+                          '- 128 - 128 --------- 128 - 128 -'
+                                    '- 256 - 256 -'
+
+            Defaults to 32.
+
+        double_second (bool, optional): Whether the second conv layer at each 
+            level of the unet's contraction path (including bottom level) 
+            should have a doubled number of conv filters. 
+            E.g. when true and start_filters_no=32, the layers will be:
+
+            32 - 64 ----------------------------------------------- 32 - 32 
+                 '- 64 - 128 ------------------------------ 64 - 64 -'
+                          '- 128 - 256 --------- 128 - 128 -'
+                                    '- 256 - 512 -'
+
+            Defaults to False.
+
+        cat_ce (bool, optional): Whether to apply categoriacal crossentropy. 
+            Defaults to True.
+    """
+
     def fil(depth):
+        """Calcualtes number of conv layers depending on the depth level in the unet.
+
+        Args:
+            depth (int): Layer depth level.
+
+        Returns:
+            int: number of convolutional layers at that level
+        """
         return start_filters_no * 2 ** (depth - 1)
 
     inputs = layers.Input(input_size)
@@ -104,6 +243,45 @@ def unet3d_in_out(input_size, start_filters_no=32, double_second=False, cat_ce=T
 def unet3d_simply(
     input_size, start_filters_no=32, cat_ce=True, metrics=None, double_second=False
 ):
+    """Constructs the 3D U-Net architecture and compiles the keras model.
+
+    Args:
+        Args:
+        input_size: Input size passed to keras.layers.Input()
+
+        start_filters_no (int, optional): Number of convolutional filters in 
+            the first layer of the model. With each level the number of conv.
+            filters doubles. E.g. for value 32 the number of layers  will be:
+                
+            32 - 32 ----------------------------------------------- 32 - 32 
+                 '- 64 - 64 ------------------------------- 64 - 64 -'
+                          '- 128 - 128 --------- 128 - 128 -'
+                                    '- 256 - 256 -'
+
+            Defaults to 32.
+
+        double_second (bool, optional): Whether the second conv layer at each 
+            level of the unet's contraction path (including bottom level) 
+            should have a doubled number of conv filters. 
+            E.g. when true and start_filters_no=32, the layers will be:
+
+            32 - 64 ----------------------------------------------- 32 - 32 
+                 '- 64 - 128 ------------------------------ 64 - 64 -'
+                          '- 128 - 256 --------- 128 - 128 -'
+                                    '- 256 - 512 -'
+
+            Defaults to False.
+
+        cat_ce (bool, optional): Whether to apply categoriacal crossentropy. 
+            Defaults to True.
+
+        metrics: 
+            custom keras metrics passed to model.compile()
+
+    Returns:
+        model: keras model
+    """
+
     inputs, outputs = unet3d_in_out(
         input_size,
         start_filters_no=start_filters_no,
@@ -135,11 +313,28 @@ def unet3d_simply(
 
 
 def unet3d(
-    input_size,
-    pretrained_weights=None,
-    three_layers=True,
-    categorical_cross_entropy=True,
+    input_size, pretrained_weights=None, three_layers=False,
 ):
+    """Constructs 3D unet manually, as opposed to unet3d_simply() where the
+    model is constructed with standarised comopnents.
+
+    Args:
+        input_size: Input size passed to keras.layers.Input()
+
+        pretrained_weights (optional): 
+            Passed to model.load_weights(). 
+            Defaults to None.
+
+        three_layers (bool, optional): 
+            Whether to creat a U-Net with 3 levles of depth. If False, 4 layers 
+            are used. 
+            Defaults to False.
+
+
+    Returns:
+        model: keras model
+    """
+
     inputs = layers.Input(input_size)
     frames, height, width, _ = input_size
 
@@ -271,7 +466,7 @@ def unet3d(
         padding="valid",
         kernel_initializer="he_normal",
     )(convout)
-    convout = layers.Reshape((height, width, 1))(convout)-
+    convout = layers.Reshape((height, width, 1))(convout)
 
     model = keras.Model(inputs=inputs, outputs=convout)
 
