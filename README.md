@@ -1,6 +1,12 @@
-## Launching
+# U-Net (Keras, Python)
 
-1. 1.
+Scripts are located in `unet/`. 
+
+- `unet/unet_basic/model_3d.py` - module for creating the model
+- `unet/data_gen.py` - data generator used in keras training, follows Keras API
+- `unet/load_data.py` - script for loadingground truth annotations data from the matlab annotation tool
+
+# Annotation Tool (MATLAB)
 
 ## Objects obtained by PCA-ICA procedure
 
@@ -17,7 +23,6 @@
    - Minimum interval between subsequent signal peaks. This allows for elimination of very subtle local minima resulting from noise. On the other hand, too high value would eliminate true neighboring spikes.
 
 1. Final elimination tools based on spatial features of the filters - eliminating filters that are too small (e.g. area of 20 square pixels).
-   $add \space details$
 
 The goal is to set these values to rule out as many false negatives as possible, but allow false positives. This is because it is easier for a human to eliminate the false positives by hand, rather than false negatives.
 
@@ -39,3 +44,5 @@ Frame Viewer can be used to inspect the original video and determine whether all
 
 default parula provides best color range
 grayscale is to low in variatey, jet is too high
+
+
